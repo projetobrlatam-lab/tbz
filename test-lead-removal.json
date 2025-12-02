@@ -1,0 +1,14 @@
+{
+  "session_id": "cd1e9a93-f73f-4adc-bc7f-8d956e0d0d6a",
+  "event_type": "lead_submit",
+  "name": "Teste Remoção",
+  "email": "teste.remocao@example.com",
+  "phone": "11999999999",
+  "produto": "tbz",
+  "tipo_de_funil": "Quiz",
+  "traffic_id": "rodiney2122",
+  "fonte_de_trafego": "instagram",
+  "utm_source": "instagram",
+  "utm_medium": "rodiney2122",
+  "fingerprint_hash": "MTc3Ljg0LjQ1LjE3"
+}

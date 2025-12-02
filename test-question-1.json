@@ -1,0 +1,11 @@
+{
+  "event_type": "question_view",
+  "event_data": {
+    "question_number": 1,
+    "question_text": "Qual é a sua idade?",
+    "quiz_id": "tbz-quiz"
+  },
+  "produto": "tbz",
+  "tipo_de_funil": "quiz",
+  "fonte_de_trafego": "direct"
+}

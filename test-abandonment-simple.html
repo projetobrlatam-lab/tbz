@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Abandono Simples</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de Abandono Simples</h1>
+        <p>Este teste verifica se a função track-abandonment está funcionando corretamente sem dependências de sessão.</p>
+        
+        <div>
+            <button onclick="testAbandonmentBasic()">Testar Abandono Básico</button>
+            <button onclick="testAbandonmentWithEmail()">Testar Abandono com Email</button>
+            <button onclick="testAbandonmentWithTrafficId()">Testar Abandono com Traffic ID</button>
+            <button onclick="clearStatus()">Limpar Status</button>
+        </div>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:54321/functions/v1';
+        
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        async function testAbandonmentBasic() {
+            showStatus('🔄 Testando abandono básico...', 'info');
+            
+            try {
+                const payload = {
+                    reason: 'test_basic_abandonment',
+                    step_where_abandoned: 'step_1',
+                    produto: 'tbz',
+                    fonte_de_trafego: 'test',
+                    tipo_de_funil: 'Quiz'
+                };
+
+                console.log('Enviando payload:', payload);
+
+                const response = await fetch(`${API_BASE}/track-abandonment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                console.log('Resposta:', result);
+
+                if (response.ok && result.success) {
+                    showStatus(`✅ Abandono básico registrado com sucesso! Status: ${response.status}`, 'success');
+                } else {
+                    showStatus(`❌ Erro no abandono básico: ${result.error || 'Erro desconhecido'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showStatus(`❌ Erro de rede: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAbandonmentWithEmail() {
+            showStatus('🔄 Testando abandono com email...', 'info');
+            
+            try {
+                const payload = {
+                    reason: 'test_email_abandonment',
+                    step_where_abandoned: 'step_2',
+                    produto: 'tbz',
+                    fonte_de_trafego: 'email_test',
+                    tipo_de_funil: 'Quiz',
+                    email: 'test@example.com'
+                };
+
+                console.log('Enviando payload:', payload);
+
+                const response = await fetch(`${API_BASE}/track-abandonment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                console.log('Resposta:', result);
+
+                if (response.ok && result.success) {
+                    showStatus(`✅ Abandono com email registrado com sucesso! Status: ${response.status}`, 'success');
+                } else {
+                    showStatus(`❌ Erro no abandono com email: ${result.error || 'Erro desconhecido'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showStatus(`❌ Erro de rede: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAbandonmentWithTrafficId() {
+            showStatus('🔄 Testando abandono com traffic ID...', 'info');
+            
+            try {
+                const payload = {
+                    reason: 'test_traffic_id_abandonment',
+                    step_where_abandoned: 'step_3',
+                    produto: 'tbz',
+                    fonte_de_trafego: 'instagram',
+                    tipo_de_funil: 'Quiz',
+                    traffic_id: 'test_traffic_123'
+                };
+
+                console.log('Enviando payload:', payload);
+
+                const response = await fetch(`${API_BASE}/track-abandonment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                console.log('Resposta:', result);
+
+                if (response.ok && result.success) {
+                    showStatus(`✅ Abandono com traffic ID registrado com sucesso! Status: ${response.status}`, 'success');
+                } else {
+                    showStatus(`❌ Erro no abandono com traffic ID: ${result.error || 'Erro desconhecido'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showStatus(`❌ Erro de rede: ${error.message}`, 'error');
+            }
+        }
+
+        function clearStatus() {
+            document.getElementById('status').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

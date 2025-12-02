@@ -1,0 +1,10 @@
+{
+  "event_type": "test",
+  "produto": "tbz",
+  "fonte_de_trafego": "direct",
+  "tipo_de_funil": "quiz",
+  "event_data": {
+    "test": true,
+    "timestamp": "2025-01-17T10:00:00Z"
+  }
+}

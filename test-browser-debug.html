@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Debug Lead Submit</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .logs {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        .log-error {
+            color: #dc3545;
+        }
+        .log-success {
+            color: #28a745;
+        }
+        .log-info {
+            color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste Debug Lead Submit</h1>
+        <p>Esta página simula o envio de leads para testar o comportamento no navegador.</p>
+        
+        <form id="leadForm">
+            <div class="form-group">
+                <label for="name">Nome:</label>
+                <input type="text" id="name" value="Maria Teste Navegador" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" value="maria.teste@gmail.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Telefone:</label>
+                <input type="tel" id="phone" value="(11) 99999-8888" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="utmSource">UTM Source (Fonte de Tráfego):</label>
+                <input type="text" id="utmSource" placeholder="Ex: instagram, facebook, google">
+            </div>
+            
+            <div class="form-group">
+                <label for="utmMedium">UTM Medium (Traffic ID):</label>
+                <input type="text" id="utmMedium" placeholder="Ex: social, cpc, organic">
+                <small style="color: #666; font-size: 12px;">⚠️ Este valor será usado como Traffic ID na tabela</small>
+            </div>
+            
+            <button type="submit">🚀 Enviar Lead</button>
+            <button type="button" onclick="clearLogs()">🗑️ Limpar Logs</button>
+        </form>
+        
+        <div class="logs" id="logs">
+            <div class="log-entry log-info">📋 Logs aparecerão aqui...</div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ynxsksgttbzxooixgqzf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlueHNrc2d0dGJ6eG9vaXhncXpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4MTU4ODAsImV4cCI6MjA3NDM5MTg4MH0.PTAaE9WV6gjpDwlQuRY_HZjI-k5BCZ5yoyIjSSiSfIg';
+
+        function addLog(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsDiv.appendChild(logEntry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '<div class="log-entry log-info">📋 Logs limpos...</div>';
+        }
+
+        // Gerar session_id único
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Simular o comportamento do frontend
+        async function submitLead(formData) {
+            const sessionId = generateSessionId();
+            
+            addLog('🎯 Iniciando envio de lead...', 'info');
+            addLog(`📋 Session ID: ${sessionId}`, 'info');
+            addLog(`🔗 UTM Source (fonte_de_trafego): ${formData.utmSource || 'null'}`, 'info');
+            addLog(`🎯 UTM Medium (traffic_id): ${formData.utmMedium || 'null'}`, 'info');
+            
+            const leadData = {
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                diagnosisLevel: 2
+            };
+
+            const eventDataObj = {
+                name: leadData.name,
+                email: leadData.email,
+                phone: leadData.phone,
+                questionId: null,
+                url: window.location.href,
+                referrer: document.referrer || null,
+                page_title: document.title,
+                diagnosisLevel: leadData.diagnosisLevel,
+                funnel_type: 'quiz',
+                utm_source: formData.utmSource || null,
+                utm_medium: formData.utmMedium || null
+            };
+
+            // Payload corrigido: utm_medium vira traffic_id
+            const eventPayload = {
+                session_id: sessionId,
+                event_type: 'lead_submit',
+                event_data: JSON.stringify(eventDataObj),
+                produto: 'tbz',
+                tipo_de_funil: 'quiz',
+                traffic_id: formData.utmMedium || null, // ✅ CORRIGIDO: traffic_id vem do utm_medium
+                fonte_de_trafego: formData.utmSource || null,
+                utm_source: formData.utmSource || null,
+                utm_medium: formData.utmMedium || null,
+                diagnosisLevel: leadData.diagnosisLevel,
+                isAnonymous: false,
+                name: leadData.name,
+                email: leadData.email,
+                phone: leadData.phone
+            };
+
+            addLog('📤 Payload corrigido preparado:', 'info');
+            addLog(JSON.stringify(eventPayload, null, 2), 'info');
+
+            try {
+                addLog('🌐 Enviando requisição para track-main...', 'info');
+                
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/track-main`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                    },
+                    body: JSON.stringify(eventPayload)
+                });
+
+                addLog(`📊 Status da resposta: ${response.status}`, response.ok ? 'success' : 'error');
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    addLog(`❌ Erro HTTP: ${errorText}`, 'error');
+                    return;
+                }
+
+                const result = await response.json();
+                addLog('✅ Resposta da edge function:', 'success');
+                addLog(JSON.stringify(result, null, 2), 'success');
+
+                if (result.success) {
+                    addLog('🎉 Lead enviado com sucesso!', 'success');
+                    addLog(`🔍 Verifique no banco se o lead foi salvo com session_id: ${sessionId}`, 'info');
+                } else {
+                    addLog('❌ Edge function retornou erro', 'error');
+                }
+
+            } catch (error) {
+                addLog(`❌ Erro na requisição: ${error.message}`, 'error');
+                console.error('Erro completo:', error);
+            }
+        }
+
+        // Event listener para o formulário
+        document.getElementById('leadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                utmSource: document.getElementById('utmSource').value,
+                utmMedium: document.getElementById('utmMedium').value
+            };
+
+            await submitLead(formData);
+        });
+
+        // Log inicial
+        addLog('🚀 Página carregada. Pronto para testar!', 'success');
+        addLog(`📍 URL atual: ${window.location.href}`, 'info');
+        addLog(`🔗 Referrer: ${document.referrer || 'Nenhum'}`, 'info');
+    </script>
+</body>
+</html>

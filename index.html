@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reino360 - Quiz</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/reino-360-logo.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/reino-360-logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/reino-360-logo.png">
+  <link rel="mask-icon" href="/favicon.svg" color="#D4AF37">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#D4AF37">
+  <meta name="msapplication-TileColor" content="#D4AF37">
+  <meta name="msapplication-config" content="/browserconfig.xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            // Nova paleta moderna e elegante
+            'primary': '#6366F1', // Indigo vibrante
+            'primary-dark': '#4F46E5',
+            'primary-light': '#818CF8',
+            'secondary': '#EC4899', // Pink vibrante
+            'secondary-dark': '#DB2777',
+            'secondary-light': '#F472B6',
+            'accent': '#10B981', // Verde esmeralda
+            'accent-dark': '#059669',
+            'accent-light': '#34D399',
+            'warning': '#F59E0B', // Âmbar
+            'warning-dark': '#D97706',
+            'success': '#10B981',
+            'background': '#FFFFFF', // Fundo branco limpo
+            'surface': '#F8FAFC', // Cinza muito claro
+            'surface-dark': '#F1F5F9',
+            'text-primary': '#1E293B', // Cinza escuro elegante
+            'text-secondary': '#64748B', // Cinza médio
+            'text-muted': '#94A3B8', // Cinza claro
+            'border': '#E2E8F0', // Borda sutil
+            'border-focus': '#6366F1', // Borda em foco
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            'elegant': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            'elegant-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            'elegant-xl': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          }
+        }
+      }
+    }
+  </script>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/"
+  }
+}
+</script>
+<script type="text/javascript">
+(function(g,u,r,i,d,e,a){g.DimppleAnalyticsObject=d;if(!(d in g)){g[d]=function(){
+g[d].q.push(arguments);};g[d].q=[];}g[d].l=(new Date()).getTime();var e=u.createElement(r);
+e.src=i;e.async=true;var a=u.getElementsByTagName(r)[0];a.parentNode.insertBefore(e,a)
+})(window,document,'script','https://api.dimpple.com/public/js/analytics.js?trk=7579.3zUNOQ.6637ead0','trk');
+
+// Inicializar o page view manualmente
+window.addEventListener('load', function() {
+  if (typeof trk !== 'undefined') {
+    trk('page_view');
+  }
+});
+</script>
+<link rel="stylesheet" href="./index.css">
+</head>
+<body class="bg-background text-text-primary font-sans antialiased">
+  <div id="root"></div>
+  <script type="module" src="./main.tsx"></script>
+</body>
+</html>

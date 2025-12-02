@@ -1,0 +1,8 @@
+{
+  "reason": "test_with_email",
+  "step_where_abandoned": "step_2",
+  "produto": "tbz",
+  "fonte_de_trafego": "email_test",
+  "tipo_de_funil": "Quiz",
+  "email": "test@example.com"
+}

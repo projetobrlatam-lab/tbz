@@ -1,0 +1,15 @@
+{
+  "event_type": "page_view",
+  "fingerprint_hash": "fixed_test_fingerprint_001",
+  "utm_source": "test",
+  "utm_medium": "fixed_debug",
+  "utm_campaign": "timing_fix_test",
+  "produto": "tbz",
+  "tipo_de_funil": "quiz",
+  "user_agent": "Test Agent",
+  "ip_address": "192.168.1.100",
+  "country_code": "BR",
+  "city": "São Paulo",
+  "region_name": "SP",
+  "session_id": "fixed_session_001"
+}

@@ -1,0 +1,10 @@
+{
+  "event_type": "quiz_start",
+  "event_data": {
+    "quiz_id": "tbz-quiz",
+    "quiz_title": "Quiz TBZ"
+  },
+  "produto": "tbz",
+  "tipo_de_funil": "quiz",
+  "fonte_de_trafego": "direct"
+}

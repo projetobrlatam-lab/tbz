@@ -1,0 +1,19 @@
+<svg width="100" height="100" viewBox="40 20 75 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Coroa -->
+  <g transform="translate(50, 20)">
+    <path d="M10 25 L30 25 L35 15 L40 25 L60 25 L55 35 L15 35 Z" fill="#D4AF37" stroke="#B8941F" stroke-width="1"/>
+    <polygon points="15,15 20,5 25,15" fill="#D4AF37"/>
+    <polygon points="25,15 30,8 35,15" fill="#D4AF37"/>
+    <polygon points="35,15 40,5 45,15" fill="#D4AF37"/>
+    <polygon points="45,15 50,8 55,15" fill="#D4AF37"/>
+    <circle cx="22" cy="20" r="2" fill="#B8941F"/>
+    <circle cx="35" cy="20" r="2" fill="#B8941F"/>
+    <circle cx="48" cy="20" r="2" fill="#B8941F"/>
+  </g>
+  <!-- Círculo com seta (O) -->
+  <g transform="translate(40, 50)">
+    <circle cx="35" cy="35" r="30" fill="none" stroke="#2C2C2C" stroke-width="4"/>
+    <path d="M15 35 Q35 15 55 35" fill="none" stroke="#D4AF37" stroke-width="3"/>
+    <polygon points="52,30 58,35 52,40 55,35" fill="#D4AF37"/>
+  </g>
+</svg>

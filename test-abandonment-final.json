@@ -1,0 +1,12 @@
+{
+  "session_id": "test-session-final-123",
+  "reason": "fechamento_janela",
+  "step_where_abandoned": "pergunta_3",
+  "produto": "tbz",
+  "fonte_de_trafego": "instagram",
+  "tipo_de_funil": "quiz",
+  "email": "teste@example.com",
+  "traffic_id": "rodiney2122",
+  "utm_source": "instagram",
+  "utm_medium": "rodiney2122"
+}

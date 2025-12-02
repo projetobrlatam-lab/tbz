@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Quiz TBZ</string>
+    <string name="title_activity_main">Quiz TBZ</string>
+    <string name="package_name">com.example.quiztbz</string>
+    <string name="custom_url_scheme">com.example.quiztbz</string>
+</resources>

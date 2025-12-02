@@ -1,0 +1,21 @@
+{
+  "fingerprint_hash": "test_mirror_fingerprint_12345",
+  "traffic_id": "test_mirror_traffic",
+  "event_type": "question_view",
+  "event_data": {
+    "question_number": 2
+  },
+  "ip": "177.84.45.177",
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+  "accept_language": "pt-pt",
+  "accept_encoding": "gzip",
+  "country_code": "BR",
+  "country_name": "Brazil",
+  "city": "Campos dos Goytacazes",
+  "region_name": "Rio de Janeiro",
+  "produto": "tbz",
+  "tipo_de_funil": "Quiz",
+  "utm_source": "instagram",
+  "question_id": "q1",
+  "answer": "test_answer"
+}

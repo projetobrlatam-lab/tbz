@@ -1,0 +1,11 @@
+{
+  "event_type": "page_view",
+  "session_id": "test-session-complete-001",
+  "traffic_id": "test-traffic-complete-001",
+  "produto": "tbz",
+  "tipo_de_funil": "quiz",
+  "fonte_de_trafego": "test",
+  "event_data": {
+    "page": "landing"
+  }
+}

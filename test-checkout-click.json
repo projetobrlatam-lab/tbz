@@ -1,0 +1,10 @@
+{
+  "event_type": "checkout_click",
+  "produto": "reino-360",
+  "tipo_de_funil": "quiz",
+  "fonte_de_trafego": "organico",
+  "event_data": {
+    "offer_url": "https://pay.hotmart.com/example",
+    "timestamp": "2024-01-15T10:30:00Z"
+  }
+}

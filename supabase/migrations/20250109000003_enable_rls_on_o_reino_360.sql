@@ -1,0 +1,13 @@
+-- Habilitar RLS em todas as tabelas do schema o_reino_360 (exceto memoria_tbz)
+BEGIN;
+
+ALTER TABLE IF EXISTS o_reino_360.quiz_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS o_reino_360.quiz_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS o_reino_360.quiz_abandonments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS o_reino_360.quiz_visits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS o_reino_360.visit_fingerprints ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS o_reino_360.leads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS o_reino_360.sales ENABLE ROW LEVEL SECURITY;
+-- memoria_tbz permanece sem RLS
+
+COMMIT;

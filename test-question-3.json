@@ -1,0 +1,12 @@
+{
+  "event_type": "question_view",
+  "session_id": "test-session-complete-001",
+  "traffic_id": "test-traffic-complete-001",
+  "produto": "tbz",
+  "tipo_de_funil": "quiz",
+  "fonte_de_trafego": "test",
+  "event_data": {
+    "question_number": 3,
+    "question_text": "Pergunta 3 do quiz - nova pergunta"
+  }
+}

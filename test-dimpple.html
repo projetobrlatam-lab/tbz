@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Dimpple Analytics</title>
+    
+    <!-- Script do Dimpple Analytics -->
+    <script type="text/javascript">
+    (function(g,u,r,i,d,e,a){g.DimppleAnalyticsObject=d;if(!(d in g)){g[d]=function(){
+    g[d].q.push(arguments);};g[d].q=[];}g[d].l=(new Date()).getTime();var e=u.createElement(r);
+    e.src=i;e.async=true;var a=u.getElementsByTagName(r)[0];a.parentNode.insertBefore(e,a)
+    })(window,document,'script','https://api.dimpple.com/public/js/analytics.js?trk=7579.3zUNOQ.6637ead0','trk');
+    
+    // Inicializar o page view manualmente
+    window.addEventListener('load', function() {
+        console.log('Página carregada, tentando disparar page_view...');
+        
+        // Aguardar o script carregar
+        setTimeout(function() {
+            if (typeof trk !== 'undefined') {
+                console.log('trk encontrado, disparando page_view');
+                trk('page_view');
+            } else {
+                console.log('trk não encontrado');
+                console.log('window.trk:', window.trk);
+                console.log('Todas as propriedades do window:', Object.keys(window));
+            }
+        }, 2000);
+    });
+    </script>
+</head>
+<body>
+    <h1>Teste do Dimpple Analytics</h1>
+    <p>Abra o console do navegador para ver os logs.</p>
+    
+    <button onclick="testEvent()">Testar Evento</button>
+    
+    <script>
+    function testEvent() {
+        console.log('Testando evento...');
+        if (typeof trk !== 'undefined') {
+            trk('test_event');
+            console.log('Evento test_event disparado');
+        } else {
+            console.log('trk não disponível para evento');
+        }
+    }
+    </script>
+</body>
+</html>

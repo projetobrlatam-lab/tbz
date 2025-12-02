@@ -1,0 +1,24 @@
+{
+  "name": "Reino360",
+  "short_name": "Reino360",
+  "icons": [
+    {
+      "src": "/reino-360-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/reino-360-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#D4AF37",
+  "background_color": "#FFFFFF",
+  "display": "standalone"
+}

@@ -1,0 +1,20 @@
+{
+  "lead_data": {
+    "traffic_id": "instagram_user_id_123",
+    "name": "Nome do Lead",
+    "email": "email@example.com",
+    "phone": "5511987654321"
+  },
+  "product_data": {
+    "produto": "tbz"
+  },
+  "traffic_data": {
+    "traffic_source": "instagram_dm"
+  },
+  "tags_to_assign": [
+    {
+      "tag_name": "Interesse: Quiz",
+      "description": "Lead demonstrou interesse no quiz através da IA"
+    }
+  ]
+}

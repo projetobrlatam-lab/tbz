@@ -1,0 +1,16 @@
+{
+  "name": "João Silva",
+  "email": "joao@teste.com",
+  "phone": "11999999999",
+  "company": "Teste Corp",
+  "produto": "Quiz TBZ",
+  "tipo_de_funil": "quiz",
+  "utm_source": "facebook",
+  "utm_medium": "cpc",
+  "utm_campaign": "teste",
+  "page_url": "https://quiz.tbz.com.br",
+  "user_agent": "Mozilla/5.0",
+  "ip_address": "192.168.1.1",
+  "current_step": "lead_capture",
+  "event_type": "form_submit"
+}

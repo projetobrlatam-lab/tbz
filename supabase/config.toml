@@ -1,0 +1,47 @@
+[functions.webhook-track]
+verify_jwt = false
+
+[functions.public-endpoint]
+verify_jwt = false
+
+[functions.anonymous-track]
+verify_jwt = false
+
+[functions.public-track]
+verify_jwt = false
+
+[functions.track-event]
+verify_jwt = false
+
+[functions.track-abandonment]
+verify_jwt = false
+
+[functions.get-metrics]
+verify_jwt = false
+
+[functions.get-abandonment]
+verify_jwt = false
+
+[functions.get-visits]
+verify_jwt = false
+
+[functions.get-sales]
+verify_jwt = false
+
+[functions.quiz-event]
+verify_jwt = false
+
+[functions.hotmart-webhook]
+verify_jwt = false
+
+[functions.cleanup-old-records]
+verify_jwt = false
+
+[functions.clear-metrics]
+verify_jwt = false
+
+[functions.remove-ip]
+verify_jwt = false
+
+[functions.track-main]
+verify_jwt = false

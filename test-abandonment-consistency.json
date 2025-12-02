@@ -1,0 +1,11 @@
+{
+  "session_id": "550f7fcf-9af1-42b0-a883-e0133e41928c",
+  "reason": "fechamento_janela",
+  "step_where_abandoned": "pergunta_3",
+  "produto": "Oreino360",
+  "fonte_de_trafego": "organic",
+  "tipo_de_funil": "quiz",
+  "email": "test@example.com",
+  "traffic_id": "test-consistency-fingerprint",
+  "fingerprint_hash": "fad51cb7e03c2ef1759c73598beaeb26b9cd140364bab43078ef1ecb6b8995ff"
+}

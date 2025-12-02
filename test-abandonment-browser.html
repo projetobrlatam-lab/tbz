@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Abandonment - Quiz TBZ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background: #e9ecef;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Teste de Abandonment - Quiz TBZ</h1>
+        
+        <div class="status" id="status">
+            <strong>Status:</strong> Aguardando ação...
+        </div>
+        
+        <div>
+            <h3>Instruções:</h3>
+            <ol>
+                <li>Clique em "Iniciar Sessão" para simular o início de uma sessão</li>
+                <li>Feche a aba/janela para testar o abandonment</li>
+                <li>Ou clique em "Simular Abandonment" para testar manualmente</li>
+            </ol>
+        </div>
+        
+        <div>
+            <button class="button" onclick="startSession()">Iniciar Sessão</button>
+            <button class="button" onclick="simulateAbandonment()">Simular Abandonment</button>
+            <button class="button" onclick="clearStatus()">Limpar Status</button>
+        </div>
+        
+        <div>
+            <h3>Session ID Atual:</h3>
+            <code id="sessionId">Nenhuma sessão iniciada</code>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let startTime = null;
+
+        // Gerar um UUID simples
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Atualizar status na tela
+        function updateStatus(message, type = '') {
+            const statusEl = document.getElementById('status');
+            statusEl.innerHTML = `<strong>Status:</strong> ${message}`;
+            statusEl.className = `status ${type}`;
+        }
+
+        // Iniciar uma nova sessão
+        async function startSession() {
+            currentSessionId = generateUUID();
+            startTime = Date.now();
+            
+            document.getElementById('sessionId').textContent = currentSessionId;
+            updateStatus('Sessão iniciada! Agora você pode fechar a aba para testar o abandonment.', 'success');
+            
+            // Simular chamada para track-main
+            try {
+                const response = await fetch('https://ynxsksgttbzxooixgqzf.supabase.co/functions/v1/track-main', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        event_type: 'page_view',
+                        event_data: {
+                            page: 'test-abandonment',
+                            timestamp: new Date().toISOString()
+                        },
+                        fingerprint_hash: 'test-browser-fingerprint-' + Date.now(),
+                        ip_address: '127.0.0.1',
+                        user_agent: navigator.userAgent,
+                        utm_source: 'test',
+                        traffic_id: 'test-browser-' + Date.now(),
+                        tipo_de_funil: 'quiz'
+                    })
+                });
+                
+                if (response.ok) {
+                    updateStatus('Sessão criada com sucesso! Session ID: ' + currentSessionId, 'success');
+                } else {
+                    updateStatus('Erro ao criar sessão: ' + response.status, 'error');
+                }
+            } catch (error) {
+                updateStatus('Erro ao conectar com o servidor: ' + error.message, 'error');
+            }
+        }
+
+        // Simular abandonment manualmente
+        async function simulateAbandonment() {
+            if (!currentSessionId) {
+                updateStatus('Inicie uma sessão primeiro!', 'error');
+                return;
+            }
+
+            const timeSpent = startTime ? (Date.now() - startTime) / 1000 / 60 : 0; // em minutos
+            
+            try {
+                updateStatus('Enviando dados de abandonment...', '');
+                
+                const response = await fetch('https://ynxsksgttbzxooixgqzf.supabase.co/functions/v1/track-abandonment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        reason: 'manual_test',
+                        step_where_abandoned: 'test_page',
+                        time_spent_minutes: timeSpent,
+                        event_data: {
+                            test: true,
+                            browser_test: true,
+                            timestamp: new Date().toISOString()
+                        },
+                        fingerprint_hash: 'test-browser-fingerprint-' + Date.now(),
+                        utm_source: 'test',
+                        traffic_id: 'test-browser-' + Date.now(),
+                        tipo_de_funil: 'quiz'
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    updateStatus(`Abandonment registrado com sucesso! Tempo gasto: ${timeSpent.toFixed(2)} minutos`, 'success');
+                } else {
+                    const errorText = await response.text();
+                    updateStatus(`Erro ao registrar abandonment: ${response.status} - ${errorText}`, 'error');
+                }
+            } catch (error) {
+                updateStatus('Erro ao conectar com o servidor: ' + error.message, 'error');
+            }
+        }
+
+        // Limpar status
+        function clearStatus() {
+            updateStatus('Status limpo. Pronto para novo teste.', '');
+            currentSessionId = null;
+            startTime = null;
+            document.getElementById('sessionId').textContent = 'Nenhuma sessão iniciada';
+        }
+
+        // Registrar abandonment quando a página for fechada
+        window.addEventListener('beforeunload', function(event) {
+            if (currentSessionId) {
+                const timeSpent = startTime ? (Date.now() - startTime) / 1000 / 60 : 0;
+                
+                // Usar sendBeacon para garantir que a requisição seja enviada
+                navigator.sendBeacon('https://ynxsksgttbzxooixgqzf.supabase.co/functions/v1/track-abandonment', 
+                    JSON.stringify({
+                        session_id: currentSessionId,
+                        reason: 'page_unload',
+                        step_where_abandoned: 'test_page',
+                        time_spent_minutes: timeSpent,
+                        event_data: {
+                            test: true,
+                            browser_unload: true,
+                            timestamp: new Date().toISOString()
+                        },
+                        fingerprint_hash: 'test-browser-fingerprint-' + Date.now(),
+                        utm_source: 'test',
+                        traffic_id: 'test-browser-' + Date.now(),
+                        tipo_de_funil: 'quiz'
+                    })
+                );
+            }
+        });
+
+        // Mostrar informações da sessão atual ao carregar
+        window.addEventListener('load', function() {
+            updateStatus('Página carregada. Clique em "Iniciar Sessão" para começar o teste.', '');
+        });
+    </script>
+</body>
+</html>
