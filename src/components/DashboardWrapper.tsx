@@ -2,12 +2,15 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import ErrorBoundary from './ErrorBoundary';
+import SimpleAuthScreen from '../pages/dashboard/SimpleAuthScreen';
+import DashboardScreen from '../pages/dashboard/DashboardScreen';
 
-// Lazy load components to isolate dependencies
-const SimpleAuthScreen = React.lazy(() => import('../pages/dashboard/SimpleAuthScreen'));
-const DashboardScreen = React.lazy(() => import('../pages/dashboard/DashboardScreen'));
+// Lazy loading removed for debugging
+// const SimpleAuthScreen = React.lazy(() => import('../pages/dashboard/SimpleAuthScreen'));
+// const DashboardScreen = React.lazy(() => import('../pages/dashboard/DashboardScreen'));
 
 const DashboardWrapper: React.FC = () => {
+  console.log('React Version in Wrapper:', React.version);
   const isBrowser = typeof window !== 'undefined';
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(isBrowser ? false : null);
