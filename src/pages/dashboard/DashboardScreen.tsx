@@ -459,7 +459,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               </>
             )}
             {activeTab === 'abandonment' && (
-              <div className="p-4 bg-yellow-100 text-yellow-800 rounded">Tela de Abandono desativada para debug</div>
+              <AbandonmentScreen
+                dateFilter={dateFilter}
+                customDate={customDate}
+                produto={selectedProduct}
+                fonteDeTrafego={selectedFonteDeTrafego}
+                tipoDeFunil={selectedTipoDeFunil}
+              />
             )}
             {activeTab === 'visits' && (
               <VisitsScreen dateFilter={dateFilter} customDate={customDate} produto={selectedProduct} fonteDeTrafego={selectedFonteDeTrafego} tipoDeFunil={selectedTipoDeFunil} />
