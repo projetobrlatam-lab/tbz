@@ -117,7 +117,7 @@ export const trackEvent = async (eventType: EventType, payload?: any): Promise<a
     // Utiliza cache de identidade + fingerprint
     const { identity, fingerprint } = await getCachedIdentityAndFingerprint();
 
-    // Preparar event_data como string JSON
+    // Preparar event_data como JSON
     const eventDataObj = {
       ...payload,
       name: payload?.name || null,
@@ -133,74 +133,58 @@ export const trackEvent = async (eventType: EventType, payload?: any): Promise<a
       utm_medium: utm_medium,
     };
 
-    const eventPayload = {
-      session_id: sessionId,
-      event_type: eventType,
-      event_data: JSON.stringify(eventDataObj),
-      produto: product, // Corrigido: deve ser 'produto' como esperado pelo track-main
-      tipo_de_funil: funnelType.toLowerCase(), // Corrigido: deve ser 'tipo_de_funil' como esperado pelo track-main
-      traffic_id: utm_medium, // ✅ CORRIGIDO: traffic_id vem do utm_medium
-      fonte_de_trafego: utm_source, // ✅ CORRIGIDO: fonte_de_trafego vem do utm_source
-      utm_source: utm_source,
-      utm_medium: utm_medium,
-      diagnosisLevel: payload?.diagnosisLevel || null,
-      diagnosticResult: payload?.diagnosticResult || null,
-      isAnonymous: !payload?.name && !payload?.email && !payload?.phone,
-    } as any;
+    // Preparar payload para a RPC function (track_event_v2)
+    const rpcPayload = {
+      p_session_id: sessionId,
+      p_event_type: eventType,
+      p_event_data: eventDataObj,
+      p_produto: product,
+      p_fonte_de_trafego: utm_source || 'direct',
+      p_tipo_de_funil: funnelType.toLowerCase(),
+      p_traffic_id: utm_medium || null,
+      p_fingerprint_hash: fingerprint || null,
+      p_user_agent: identity?.userAgent || (typeof navigator !== 'undefined' ? navigator.userAgent : null),
+      p_ip: null, // IP será extraído headers se possível, ou ficará null (RPC lida com isso se passado null? Não, RPC precisa do IP. Mas client não tem IP. O Supabase injeta? Não via RPC direto. Precisamos confiar no header x-forwarded-for que o Supabase recebe. Mas no body não vai. O RPC pode pegar `current_setting('request.headers')::json->>'x-forwarded-for'`? Sim, mas é complexo. Vamos mandar null e aceitar que o IP pode não ser gravado corretamente na tabela identificador via RPC direto do client, A MENOS que usemos uma Edge Function. Mas a Edge Function falhou. O RPC é a alternativa. O IP é crítico para fingerprint? O fingerprint já vem calculado do front (com IP anonimizado se possível, ou sem IP). O `identificador` tabela pede `original_ip`. Se mandarmos null, ok. O fingerprint é o que importa para dedup.)
+      p_url: isBrowser ? window.location.href : null,
+      p_referrer: isBrowser ? document.referrer || null : null,
+      p_email: payload?.email || null,
+      p_name: payload?.name || null,
+      p_phone: payload?.phone || null,
+      p_urgency_level: payload?.diagnosticResult?.urgencyLevel || payload?.diagnosisLevel || null
+    };
 
-    // Em LEAD_SUBMIT, enviar name/email/phone no topo do payload
-    if (eventType === EventType.LEAD_SUBMIT) {
-      eventPayload.name = payload?.name || null;
-      eventPayload.email = payload?.email || null;
-      eventPayload.phone = payload?.phone || null;
+    console.log(`🚀 [DEBUG client.ts] Enviando payload para RPC track_event_v2:`, rpcPayload);
 
-      // ✅ CORRIGIDO: Extrair urgency_level do diagnosticResult
-      if (payload?.diagnosticResult?.urgencyLevel) {
-        eventPayload.urgency_level = payload.diagnosticResult.urgencyLevel;
-      }
-    }
+    const url = `${SUPABASE_URL}/rest/v1/rpc/track_event_v2`;
 
-    console.log(`🚀 [DEBUG client.ts] Enviando payload para Edge Function:`, eventPayload);
-
-    // DEBUG: Log específico para lead_submit
-    if (eventType === EventType.LEAD_SUBMIT) {
-      console.log(`🎯 [DEBUG LEAD_SUBMIT] Dados do lead:`, {
-        name: payload?.name,
-        email: payload?.email,
-        phone: payload?.phone,
-        urgency_level: payload?.diagnosticResult?.urgencyLevel, // ✅ ADICIONADO: urgency_level
-        traffic_id: utm_medium, // ✅ CORRIGIDO: traffic_id agora vem do utm_medium
-        fonte_de_trafego: utm_source, // ✅ CORRIGIDO: fonte_de_trafego agora vem do utm_source
-        produto: product,
-        tipo_de_funil: funnelType,
-        diagnosticResult: payload?.diagnosticResult // ✅ ADICIONADO: diagnosticResult completo para debug
-      });
-    }
-
-    // Usa a nova Edge Function consolidada 'track-main' para todos os eventos de tracking
-    const endpoint = 'track-main';
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/${endpoint}`, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'apikey': SUPABASE_ANON_KEY,
+        'Content-Profile': 'tbz',
+        'Prefer': 'return=representation' // Para receber o retorno do JSON
       },
-      body: JSON.stringify(eventPayload)
+      body: JSON.stringify(rpcPayload),
+      keepalive: true
     });
 
     if (!response.ok) {
       const text = await response.text();
-      console.error(`Erro HTTP ao chamar ${endpoint}: ${response.status} - ${text}`);
-      throw new Error(`Erro ao registrar evento: ${response.status} - ${text}`);
+      console.error(`Erro HTTP ao chamar track_event_v2: ${response.status} - ${text}`);
+      // Não lançar erro para não quebrar a navegação do usuário, apenas logar
+      return { sessionId };
     }
 
     const responseData = await response.json();
-    const lead_id = (responseData && (responseData.lead_id ?? responseData.leadId)) || undefined;
-    return { sessionId, lead_id };
+    console.log('[trackEvent] Resposta RPC:', responseData);
+
+    return { sessionId, lead_id: responseData.session_uuid }; // Retornando session_uuid como lead_id temporariamente se precisar, ou ajustar tipagem
   } catch (error) {
     console.error('Erro ao registrar evento:', error);
-    throw error;
+    // Não lançar erro
+    return { sessionId: getSessionId() };
   }
 };
 
@@ -584,22 +568,26 @@ export const recordAbandonment = async (
       return;
     }
 
-    const payload = {
-      session_id: sessionId,
-      step_where_abandoned: step,
-      reason: reason,
-      produto: produto,
-      // fingerprint_hash: ... (deixando nulo por enquanto, ou pegando do cache se disponível)
+    // Tentar pegar fingerprint do cache se existir
+    const cachedFingerprint = safeSessionStorage.get('quiz_fingerprint');
+
+    // Preparar payload para a RPC function (track_abandonment_v2)
+    const rpcPayload = {
+      p_session_id: sessionId,
+      p_reason: reason,
+      p_step: step,
+      p_produto: produto,
+      p_fonte_de_trafego: fonteDeTrafego,
+      p_tipo_de_funil: tipoDeFunil,
+      p_email: leadEmail || null,
+      p_traffic_id: instagramId || null,
+      p_fingerprint_hash: cachedFingerprint || null,
+      p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+      p_ip: null // IP será extraído headers se possível, ou ficará null
     };
 
-    // Tentar pegar fingerprint do cache se existir (opcional)
-    const cachedFingerprint = safeSessionStorage.get('quiz_fingerprint');
-    if (cachedFingerprint) {
-      Object.assign(payload, { fingerprint_hash: cachedFingerprint });
-    }
-
-    // URL para a tabela 'abandono' no schema 'tbz'
-    const url = `${SUPABASE_URL}/rest/v1/abandono`;
+    // URL para a RPC function
+    const url = `${SUPABASE_URL}/rest/v1/rpc/track_abandonment_v2`;
 
     // Usar fetch com keepalive para garantir envio no fechamento da aba
     await fetch(url, {
@@ -608,14 +596,14 @@ export const recordAbandonment = async (
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'apikey': SUPABASE_ANON_KEY,
-        'Content-Profile': 'tbz', // Importante: aponta para o schema tbz
+        'Content-Profile': 'tbz', // Importante: aponta para o schema tbz onde a função está
         'Prefer': 'return=minimal'
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(rpcPayload),
       keepalive: true
     });
 
-    console.log('[recordAbandonment] Dados de abandono enviados com sucesso (tbz.abandono).', payload);
+    console.log('[recordAbandonment] Dados de abandono enviados via RPC (track_abandonment_v2).', rpcPayload);
 
   } catch (error) {
     console.error('Erro ao registrar abandono:', error);
