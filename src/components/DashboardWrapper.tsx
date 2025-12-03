@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { supabase } from '../integrations/supabase/client';
-import SimpleAuthScreen from '../pages/dashboard/SimpleAuthScreen';
-import DashboardScreen from '../pages/dashboard/DashboardScreen';
 import { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import ErrorBoundary from './ErrorBoundary';
+
+// Lazy load components to isolate dependencies
+const SimpleAuthScreen = React.lazy(() => import('../pages/dashboard/SimpleAuthScreen'));
+const DashboardScreen = React.lazy(() => import('../pages/dashboard/DashboardScreen'));
 
 const DashboardWrapper: React.FC = () => {
   const isBrowser = typeof window !== 'undefined';
@@ -69,11 +71,13 @@ const DashboardWrapper: React.FC = () => {
         <p className="text-lg font-semibold">Ocorreu um erro inesperado ao carregar o Dashboard. Por favor, tente novamente mais tarde.</p>
       </div>
     }>
-      {isAuthenticated ? (
-        <DashboardScreen totalQuestions={15} />
-      ) : (
-        <SimpleAuthScreen onLogin={handleLogin} />
-      )}
+      <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Carregando...</div>}>
+        {isAuthenticated ? (
+          <DashboardScreen totalQuestions={15} />
+        ) : (
+          <SimpleAuthScreen onLogin={handleLogin} />
+        )}
+      </Suspense>
     </ErrorBoundary>
   );
 };
