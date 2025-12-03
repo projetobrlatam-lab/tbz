@@ -23,8 +23,7 @@ root.render(
       {VALID_PRODUCT_SLUGS.map(slug => (
         <Route key={slug} path={`/${slug}`} element={<App />} />
       ))}
-      {/* Adicionando uma rota com parâmetro nomeado para capturar o slug */}
-      <Route path="/:productSlug" element={<App />} />
+
       <Route path="*" element={<React.Suspense fallback={<div>Carregando...</div>}><NotFoundScreen /></React.Suspense>} /> {/* Rota curinga para qualquer outro slug */}
     </Routes>
   </BrowserRouter>

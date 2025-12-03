@@ -33,7 +33,7 @@ serve(async (req: Request) => {
 
     let query = supabase
       .schema('tbz')
-      .from('visitas')
+      .from('sessoes')
       .select('created_at, produto, fonte_de_trafego, tipo_de_funil')
       .limit(10000);
 
