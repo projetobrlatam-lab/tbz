@@ -459,22 +459,16 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               </>
             )}
             {activeTab === 'abandonment' && (
-              <AbandonmentScreen
-                dateFilter={dateFilter}
-                customDate={customDate}
-                produto={selectedProduct}
-                fonteDeTrafego={selectedFonteDeTrafego}
-                tipoDeFunil={selectedTipoDeFunil}
-              />
+              <div className="p-4 bg-yellow-100 text-yellow-800 rounded">Tela de Abandono desativada para debug</div>
             )}
             {activeTab === 'visits' && (
-              <VisitsScreen dateFilter={dateFilter} customDate={customDate} produto={selectedProduct} fonteDeTrafego={selectedFonteDeTrafego} tipoDeFunil={selectedTipoDeFunil} />
+              <div className="p-4 bg-yellow-100 text-yellow-800 rounded">Tela de Visitas desativada para debug</div>
             )}
             {activeTab === 'buyers' && (
               <BuyersScreen dateFilter={dateFilter} customDate={customDate} produto={selectedProduct} />
             )}
             {activeTab === 'crm' && (
-              <LeadsScreen dateFilter={dateFilter} customDate={customDate} produto={selectedProduct} fonteDeTrafego={selectedFonteDeTrafego} tipoDeFunil={selectedTipoDeFunil} />
+              <div className="p-4 bg-yellow-100 text-yellow-800 rounded">Tela de Leads desativada para debug</div>
             )}
             {activeTab === 'products' && (
               <div className="p-4 bg-yellow-100 text-yellow-800 rounded">Tela de Produtos desativada para debug</div>
