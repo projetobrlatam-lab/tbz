@@ -3,8 +3,8 @@ import { supabase } from '../integrations/supabase/client';
 import { collectBrowserIdentity, computeFingerprint } from '../utils/browserIdentity';
 import { generateSessionId } from '../utils/validation';
 
-const SUPABASE_URL = 'https://ynxsksgttbzxooixgqzf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlueHNrc2d0dGJ6eG9vaXhncXpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4MTU4ODAsImV4cCI6MjA3NDM5MTg4MH0.PTAaE9WV6gjpDwlQuRY_HZjI-k5BCZ5yoyIjSSiSfIg';
+const SUPABASE_URL = 'https://awqqqkqvzlggczcoawvi.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3cXFxa3F2emxnZ2N6Y29hd3ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2ODE1MTEsImV4cCI6MjA4MDI1NzUxMX0.9e0KXWDZWc0UBr5clyf_bhl0rWEAMYDhXVn0ZwGFqWM';
 
 const isBrowser = typeof window !== 'undefined';
 
@@ -52,7 +52,7 @@ const getSessionId = (): string => {
 
   let sessionId = safeSessionStorage.get('quiz_session_id');
   const sessionTimestamp = safeSessionStorage.get('quiz_session_timestamp');
-  
+
   const SESSION_TIMEOUT = 3600000; // 1 hora em ms
 
   if (!sessionId || !sessionTimestamp || (Date.now() - parseInt(sessionTimestamp, 10) > SESSION_TIMEOUT)) {
@@ -60,7 +60,7 @@ const getSessionId = (): string => {
     safeSessionStorage.set('quiz_session_id', sessionId);
     safeSessionStorage.set('quiz_session_timestamp', Date.now().toString());
   }
-  
+
   return sessionId;
 };
 
@@ -80,7 +80,7 @@ const getCachedIdentityAndFingerprint = async () => {
 
   // Se não existir cache, coleta apenas dados do browser (sem IP externo)
   const identity = await collectBrowserIdentity();
-  
+
   // IMPORTANTE: Não gerar fingerprint no frontend, deixar o backend fazer isso
   // usando o IP correto dos headers da requisição
   const fingerprint = await computeFingerprint([
@@ -153,7 +153,7 @@ export const trackEvent = async (eventType: EventType, payload?: any): Promise<a
       eventPayload.name = payload?.name || null;
       eventPayload.email = payload?.email || null;
       eventPayload.phone = payload?.phone || null;
-      
+
       // ✅ CORRIGIDO: Extrair urgency_level do diagnosticResult
       if (payload?.diagnosticResult?.urgencyLevel) {
         eventPayload.urgency_level = payload.diagnosticResult.urgencyLevel;
@@ -205,17 +205,17 @@ export const trackEvent = async (eventType: EventType, payload?: any): Promise<a
 };
 
 export const recordAbandonment = async (
-  step: string, 
-  reason: string = 'fechamento_janela', 
-  produto: string, 
+  step: string,
+  reason: string = 'fechamento_janela',
+  produto: string,
   fonteDeTrafego: string, // Espera-se uma string resolvida
-  tipoDeFunil: string, 
-  leadEmail?: string, 
-  instagramId?: string | null 
+  tipoDeFunil: string,
+  leadEmail?: string,
+  instagramId?: string | null
 ): Promise<void> => {
   try {
     const sessionId = getSessionId();
-    
+
     if (!produto || !tipoDeFunil) {
       console.error('Produto ou Tipo de Funil ausente para recordAbandonment.');
       return;
@@ -223,7 +223,7 @@ export const recordAbandonment = async (
 
     // NÃO enviar fingerprint_hash do frontend - deixar o backend buscar da tabela identificador
     console.log(`[recordAbandonment] Enviando abandono sem fingerprint_hash para que o backend busque da tabela identificador`);
-    
+
     const payload = {
       session_id: sessionId,
       reason,
@@ -262,7 +262,7 @@ export const recordAbandonment = async (
       keepalive: true
     });
     console.log('[recordAbandonment] Abandonment data sent via fetch with keepalive.');
-    
+
   } catch (error) {
     console.error('Erro ao registrar abandono (fetch/beacon):', error);
   }
@@ -271,7 +271,7 @@ export const recordAbandonment = async (
 export const assignTagToLead = async (leadId: string, tagName: string, produto: string, description?: string): Promise<LeadTagAssignment | null> => {
   try {
     const authToken = await getAuthToken();
-    
+
     const response = await fetch(`${SUPABASE_URL}/functions/v1/assign-tag`, {
       method: 'POST',
       headers: {
@@ -295,8 +295,8 @@ export const assignTagToLead = async (leadId: string, tagName: string, produto: 
     const result = await response.json();
     return {
       ...result.assignment,
-      tag_category_inferred: '', 
-      tag_source_inferred: '',   
+      tag_category_inferred: '',
+      tag_source_inferred: '',
     };
 
   } catch (error) {
@@ -346,7 +346,7 @@ export const getMetrics = async (dateFilter: string = 'all', customDate?: string
 
     const metrics = await response.json();
     console.log('[API Client] getMetrics - Resposta da API:', metrics);
-    
+
     return {
       total_visits: metrics.total_visits || 0,
       total_quiz_starts: metrics.total_quiz_starts || 0,
@@ -389,7 +389,7 @@ export const getVisits = async (dateFilter: string, customDate?: string, produto
       body: JSON.stringify({
         date_filter: dateFilter,
         custom_date: customDate || undefined,
-        produto: produto && produto !== 'all' ? produto : undefined, 
+        produto: produto && produto !== 'all' ? produto : undefined,
         fonte_de_trafego: fonteDeTrafego && fonteDeTrafego !== 'all' ? fonteDeTrafego : undefined,
         tipo_de_funil: tipoDeFunil && tipoDeFunil !== 'all' ? tipoDeFunil : undefined,
       })
@@ -598,7 +598,7 @@ export const getAbandonmentData = async (filters: {
 }): Promise<AbandonmentData[]> => {
   const params = new URLSearchParams();
   params.append('dateFilter', filters.dateFilter);
-  
+
   if (filters.customDate) {
     params.append('customDate', filters.customDate);
   }
