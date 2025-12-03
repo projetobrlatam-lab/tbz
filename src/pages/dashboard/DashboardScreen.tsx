@@ -9,7 +9,7 @@ import BuyersScreen from './BuyersScreen';
 import VisitsScreen from './VisitsScreen';
 import LeadsScreen from './LeadsScreen';
 import AbandonmentScreen from './AbandonmentScreen';
-// import ProductsScreen from './ProductsScreen'; // Keeping ProductsScreen disabled for debugging
+import ProductsScreen from './ProductsScreen';
 import BarChart from '../../components/charts/BarChart';
 
 interface DashboardScreenProps {
