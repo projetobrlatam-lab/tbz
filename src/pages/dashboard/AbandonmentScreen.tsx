@@ -189,7 +189,7 @@ const AbandonmentScreen: React.FC<AbandonmentScreenProps> = ({
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-light text-primary-dark">
                           <XCircleIcon className="w-3 h-3 mr-1" />
                           {item.etapa_abandono}
                         </span>

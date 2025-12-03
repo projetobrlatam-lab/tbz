@@ -300,7 +300,7 @@ const LeadsScreen: React.FC<LeadsScreenProps> = ({ dateFilter, customDate, produ
               <button
                 onClick={handleSearchLead}
                 disabled={isSearching}
-                className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-300"
+                className="bg-primary text-white font-semibold py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:bg-primary-light"
               >
                 {isSearching ? 'Buscando...' : 'Buscar'}
               </button>
@@ -349,7 +349,7 @@ const LeadsScreen: React.FC<LeadsScreenProps> = ({ dateFilter, customDate, produ
                 {loading ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-4 border-blue-600 mx-auto"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-4 border-primary mx-auto"></div>
                       <p className="mt-2 text-gray-500">Carregando leads...</p>
                     </td>
                   </tr>
@@ -420,7 +420,7 @@ const LeadsScreen: React.FC<LeadsScreenProps> = ({ dateFilter, customDate, produ
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Detalhes do Lead">
         {isSearching ? (
           <div className="flex justify-center items-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : searchError ? (
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg">

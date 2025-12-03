@@ -3,7 +3,7 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { Session } from '@supabase/supabase-js';
 import React, { CSSProperties, useEffect, useState } from 'react';
 import { supabase } from '../../integrations/supabase/client'; // Caminho atualizado
-import ptBR from '../../../pt-BR.json'; // Caminho atualizado
+import ptBR from './pt-BR.json'; // Caminho atualizado
 
 interface SimpleAuthScreenProps {
   onLogin: () => void;
@@ -63,9 +63,9 @@ export default function SimpleAuthScreen({ onLogin }: SimpleAuthScreenProps) {
         {/* Logo Section */}
         <div className="logo-section">
           <div className="logo-container">
-            <img 
-              src="/reino-360-logo.png" 
-              alt="Reino 360 Logo" 
+            <img
+              src="/reino-360-logo.png"
+              alt="Reino 360 Logo"
               className="logo"
             />
           </div>
@@ -220,7 +220,7 @@ export default function SimpleAuthScreen({ onLogin }: SimpleAuthScreenProps) {
                 Esqueci minha senha
               </button>
               <div className="signup-link">
-                Ainda não tem uma conta? 
+                Ainda não tem uma conta?
                 <button className="signup-button" onClick={() => setView('sign_up')}>
                   Criar conta
                 </button>
@@ -231,7 +231,7 @@ export default function SimpleAuthScreen({ onLogin }: SimpleAuthScreenProps) {
           {view === 'sign_up' && (
             <div className="auth-links">
               <div className="signin-link">
-                Já tem uma conta? 
+                Já tem uma conta?
                 <button className="signin-button" onClick={() => setView('sign_in')}>
                   Entrar
                 </button>
