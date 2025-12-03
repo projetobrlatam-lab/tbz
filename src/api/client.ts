@@ -1,4 +1,4 @@
-import { EventType, DashboardMetrics, Visit, Sale, LeadTagAssignment, LeadWithTags } from '../types';
+import { EventType, DashboardMetrics, Visit, Sale, LeadTagAssignment, LeadWithTags, AbandonmentData } from '../types';
 import { supabase } from '../integrations/supabase/client';
 import { collectBrowserIdentity, computeFingerprint } from '../utils/browserIdentity';
 import { generateSessionId } from '../utils/validation';

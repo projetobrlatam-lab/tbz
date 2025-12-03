@@ -212,3 +212,14 @@ export interface DashboardScreenProps {
 export interface IconProps {
   className?: string;
 }
+
+export interface AbandonmentData {
+  id: string;
+  data_hora: string;
+  etapa_abandono: string;
+  motivo: string;
+  tempo_gasto: number;
+  fonte_trafego: string;
+  tipo_funil: string;
+  traffic_id: string;
+}
