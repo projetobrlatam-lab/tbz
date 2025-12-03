@@ -1,17 +1,7 @@
 [functions.webhook-track]
 verify_jwt = false
 
-[functions.public-endpoint]
-verify_jwt = false
 
-[functions.anonymous-track]
-verify_jwt = false
-
-[functions.public-track]
-verify_jwt = false
-
-[functions.track-event]
-verify_jwt = false
 
 [functions.track-abandonment]
 verify_jwt = false
@@ -28,8 +18,7 @@ verify_jwt = false
 [functions.get-sales]
 verify_jwt = false
 
-[functions.quiz-event]
-verify_jwt = false
+
 
 [functions.hotmart-webhook]
 verify_jwt = false

@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["ESNext", "DOM"],
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
     "strict": true,
     "esModuleInterop": true,
     "isolatedModules": true,
@@ -12,10 +15,19 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
-      "@std/*": ["https://deno.land/std@0.190.0/*"],
-      "supabase-js": ["https://esm.sh/@supabase/supabase-js@2.44.1"]
-    }
+      "@std/*": [
+        "https://deno.land/std@0.190.0/*"
+      ],
+      "supabase-js": [
+        "https://esm.sh/@supabase/supabase-js@2.44.1"
+      ]
+    },
+    "types": []
   },
-  "include": ["./**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "./**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

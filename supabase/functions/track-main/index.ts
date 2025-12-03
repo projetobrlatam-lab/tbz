@@ -1,5 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.44.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,10 +20,10 @@ function isValidUUID(uuid: string): boolean {
 }
 
 function getClientIP(req: Request): string {
-  return req.headers.get('cf-connecting-ip') || 
-         req.headers.get('x-real-ip') || 
-         req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 
-         '127.0.0.1';
+  return req.headers.get('cf-connecting-ip') ||
+    req.headers.get('x-real-ip') ||
+    req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+    '127.0.0.1';
 }
 
 function normalizeIP(ip: string): string {
@@ -40,16 +39,16 @@ async function getLocation(ip: string): Promise<{ country_code: string; country_
     if (ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip === 'unknown') {
       return { country_code: 'BR', country_name: 'Brazil', city: 'São Paulo', region_name: 'São Paulo' };
     }
-    
+
     const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,countryCode,country,city,regionName`, {
       signal: AbortSignal.timeout(3000)
     });
-    
+
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
-    
+
     if (data.status !== 'success') throw new Error('Geolocation failed');
-    
+
     return {
       country_code: data.countryCode || 'BR',
       country_name: data.country || 'Brazil',
@@ -68,17 +67,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   try {
-    console.log('🔍 === NOVA REQUISIÇÃO TRACK-MAIN ===');
+    console.log('🔍 === NOVA REQUISIÇÃO TRACK-MAIN (TBZ SCHEMA) ===');
     console.log('📊 Headers da requisição:', JSON.stringify(Object.fromEntries(req.headers.entries()), null, 2));
     console.log('🌐 URL da requisição:', req.url);
     console.log('🔧 Método da requisição:', req.method);
-    console.log('=== TRACK-MAIN REQUEST START ===');
-    console.log('Method:', req.method);
-    console.log('URL:', req.url);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
+
     if (!supabaseUrl || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Missing Supabase configuration');
     }
@@ -87,12 +83,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     // Extrair dados da requisição
     let requestData: any = {};
-    
+
     if (req.method === 'POST') {
       try {
         const body = await req.text();
         console.log('Raw POST Body:', body);
-        
+
         if (body.trim()) {
           requestData = JSON.parse(body);
         }
@@ -210,75 +206,38 @@ Deno.serve(async (req: Request): Promise<Response> => {
       location: location.city
     });
 
-    // === VERIFICAR DEDUPLICAÇÃO BASEADA NO FINGERPRINT_HASH (24 HORAS) ===
-    let shouldSkipEvent = false;
-    let shouldSkipVisit = false;
-    
+    // === 1. INSERIR IDENTIFICADOR (FINGERPRINT) - PRIMEIRO PASSO OBRIGATÓRIO ===
+    // Necessário para satisfazer FK em sessoes e leads
     try {
-      console.log('🔍 Verificando deduplicação para fingerprint_hash nas últimas 24 horas...');
-      
-      // Verificar se já existe identificador para este fingerprint_hash
-      const { data: existingIdentifier, error: identifierError } = await supabase
-        .from('oreino360-identificador')
-        .select('id, created_at')
-        .eq('fingerprint_hash', fingerprintHash)
-        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        .single();
+      const identificadorPayload = {
+        fingerprint_hash: fingerprintHash,
+        original_ip: clientIP,
+        user_agent: userAgent,
+        country_code: location.country_code,
+        city: location.city,
+        region_name: location.region_name,
+        created_at: new Date().toISOString()
+      };
 
-      if (identifierError && identifierError.code !== 'PGRST116') {
-        console.error('❌ Erro ao verificar identificador:', identifierError);
-      } else if (existingIdentifier) {
-        console.log('🔍 Fingerprint_hash já existe nas últimas 24h, verificando eventos específicos...');
-        
-        // Buscar todas as sessões deste fingerprint_hash nas últimas 24 horas
-        const { data: recentSessions, error: sessionError } = await supabase
-          .from('oreino360-sessoes')
-          .select('id')
-          .eq('fingerprint_hash', fingerprintHash)
-          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+      console.log('📝 Inserindo/Atualizando identificador...');
+      const { error: identifierError } = await supabase
+        .schema('tbz')
+        .from('identificador')
+        .upsert(identificadorPayload, { onConflict: 'fingerprint_hash' });
 
-        if (sessionError) {
-          console.error('❌ Erro ao buscar sessões recentes:', sessionError);
-        } else if (recentSessions && recentSessions.length > 0) {
-          const sessionIds = recentSessions.map(s => s.id);
-          
-          // Verificar eventos existentes
-          const { data: existingEvents, error: eventError } = await supabase
-            .from('oreino360-eventos')
-            .select('id, event_type, created_at')
-            .in('session_id', sessionIds)
-            .eq('event_type', event_type)
-            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-
-          if (eventError) {
-            console.error('❌ Erro ao verificar eventos existentes:', eventError);
-          } else if (existingEvents && existingEvents.length > 0) {
-            console.log('⚠️ Evento já existe nas últimas 24h, pulando inserção:', event_type);
-            shouldSkipEvent = true;
-          }
-
-          // Verificar visitas existentes para eventos de page_view/visit
-          if (['page_view', 'visit'].includes(event_type)) {
-            const { data: existingVisits, error: visitError } = await supabase
-              .from('oreino360-visitas')
-              .select('id, created_at')
-              .in('session_id', sessionIds)
-              .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-
-            if (visitError) {
-              console.error('❌ Erro ao verificar visitas existentes:', visitError);
-            } else if (existingVisits && existingVisits.length > 0) {
-              console.log('⚠️ Visita já existe nas últimas 24h, pulando inserção de visita');
-              shouldSkipVisit = true;
-            }
-          }
-        }
+      if (identifierError) {
+        console.error('❌ Erro ao inserir identificador:', identifierError);
+        // Não podemos continuar se falhar aqui pois sessoes depende disso
+        throw new Error(`Falha ao criar identificador: ${identifierError.message}`);
       }
+      console.log('✅ Identificador garantido.');
     } catch (error) {
-      console.error('❌ Erro na verificação de deduplicação:', error);
+      console.error('❌ Erro crítico no identificador:', error);
+      throw error;
     }
 
-    // === INSERIR SESSÃO ===
+    // === 2. INSERIR SESSÃO - SEGUNDO PASSO OBRIGATÓRIO ===
+    // Necessário para satisfazer FK em eventos, visitas, abandono
     let sessionUUID = null;
     try {
       // Determinar current_step baseado no event_type
@@ -312,51 +271,94 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       const sessionPayload = {
-        session_id: sessionId, // Este é text e único
-        fingerprint_hash: fingerprintHash,
+        session_id: sessionId, // Business Key
+        fingerprint_hash: fingerprintHash, // FK
         ip_address: clientIP,
-        country_code: location.country_code,
-        produto: produto,
         traffic_id: trafficId,
-        tipo_de_funil: tipo_de_funil,
         fonte_de_trafego: fonte_de_trafego || utm_source || 'direct',
+        tipo_de_funil: tipo_de_funil,
+        produto: produto,
         current_step: currentStep,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
-      console.log('📝 Inserindo sessão...');
+      console.log('📝 Inserindo/Atualizando sessão...');
       const { data: sessionData, error: sessionError } = await supabase
-        .from('oreino360-sessoes')
+        .schema('tbz')
+        .from('sessoes')
         .upsert(sessionPayload, { onConflict: 'session_id' })
-        .select();
+        .select('id')
+        .single();
 
       if (sessionError) {
         console.error('❌ Erro ao inserir sessão:', sessionError);
+        throw new Error(`Falha ao criar sessão: ${sessionError.message}`);
       } else {
-        sessionUUID = sessionData?.[0]?.id; // Pegar o UUID gerado
-        console.log('✅ Sessão inserida:', sessionUUID);
+        sessionUUID = sessionData.id; // Pegar o UUID gerado (PK)
+        console.log('✅ Sessão inserida/recuperada:', sessionUUID);
       }
     } catch (error) {
-      console.error('❌ Erro geral na sessão:', error);
+      console.error('❌ Erro crítico na sessão:', error);
+      throw error;
     }
 
-    // === INSERIR EVENTO ===
-    if (!shouldSkipEvent) {
+    // === 3. DEDUPLICAÇÃO DE EVENTOS ===
+    let shouldSkipEvent = false;
+    let shouldSkipVisit = false;
+
+    try {
+      // Verificar eventos existentes na última hora para evitar duplicatas rápidas
+      const { data: existingEvents, error: eventError } = await supabase
+        .schema('tbz')
+        .from('eventos')
+        .select('id')
+        .eq('session_id', sessionUUID)
+        .eq('event_type', event_type)
+        .gte('created_at', new Date(Date.now() - 60 * 60 * 1000).toISOString()); // 1 hora
+
+      if (eventError) {
+        console.error('❌ Erro ao verificar eventos existentes:', eventError);
+      } else if (existingEvents && existingEvents.length > 0) {
+        console.log('⚠️ Evento já existe na última hora, pulando inserção:', event_type);
+        shouldSkipEvent = true;
+      }
+
+      // Verificar visitas existentes para eventos de page_view/visit nas últimas 24h
+      if (['page_view', 'visit'].includes(event_type)) {
+        const { data: existingVisits, error: visitError } = await supabase
+          .schema('tbz')
+          .from('visitas')
+          .select('id')
+          .eq('session_id', sessionUUID)
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+        if (visitError) {
+          console.error('❌ Erro ao verificar visitas existentes:', visitError);
+        } else if (existingVisits && existingVisits.length > 0) {
+          console.log('⚠️ Visita já existe nas últimas 24h, pulando inserção de visita');
+          shouldSkipVisit = true;
+        }
+      }
+    } catch (error) {
+      console.error('❌ Erro na verificação de deduplicação:', error);
+    }
+
+    // === 4. INSERIR EVENTO ===
+    if (!shouldSkipEvent && sessionUUID) {
       try {
         const eventPayload = {
-          session_id: sessionUUID, // Usar o UUID da sessão
+          session_id: sessionUUID, // FK
           event_type,
           event_data: event_data || null,
           produto: produto,
-          fonte_de_trafego: fonte_de_trafego || utm_source || 'direct',
-          tipo_de_funil: tipo_de_funil,
           created_at: new Date().toISOString()
         };
 
         console.log('📝 Inserindo evento...');
         const { data: eventData, error: eventError } = await supabase
-          .from('oreino360-eventos')
+          .schema('tbz')
+          .from('eventos')
           .insert(eventPayload)
           .select();
 
@@ -368,67 +370,23 @@ Deno.serve(async (req: Request): Promise<Response> => {
       } catch (error) {
         console.error('❌ Erro geral no evento:', error);
       }
-    } else {
-      console.log('⏭️ Evento pulado devido à deduplicação:', event_type);
     }
 
-    // === INSERIR IDENTIFICADOR ===
-    if (['page_view', 'visit', 'quiz_start'].includes(event_type)) {
-      try {
-        const identificadorPayload = {
-          fingerprint_hash: fingerprintHash,
-          original_ip: clientIP,
-          normalized_ip: normalizedIP,
-          user_agent: userAgent,
-          country_code: location.country_code,
-          country_name: location.country_name,
-          city: location.city,
-          produto: produto,
-          traffic_id: trafficId,
-          tipo_de_funil: tipo_de_funil,
-          fonte_de_trafego: fonte_de_trafego || utm_source || 'direct',
-          region_name: location.region_name,
-          visitas_24h: 1,
-          created_at: new Date().toISOString()
-        };
-
-        console.log('📝 Inserindo identificador...');
-        const { data: identifierData, error: identifierError } = await supabase
-          .from('oreino360-identificador')
-          .upsert(identificadorPayload, { onConflict: 'fingerprint_hash' })
-          .select();
-
-        if (identifierError) {
-          console.error('❌ Erro ao inserir identificador:', identifierError);
-        } else {
-          console.log('✅ Identificador inserido:', identifierData?.[0]?.id);
-        }
-      } catch (error) {
-        console.error('❌ Erro geral no identificador:', error);
-      }
-    }
-
-    // === INSERIR VISITA ===
+    // === 5. INSERIR VISITA ===
     if (['page_view', 'visit'].includes(event_type) && sessionUUID && !shouldSkipVisit) {
       try {
         const visitaPayload = {
-          session_id: sessionUUID, // Usar o UUID da sessão
-          ip_address: clientIP,
-          country_code: location.country_code,
-          city: location.city,
-          country_name: location.country_name,
-          user_agent: userAgent,
+          session_id: sessionUUID, // FK
+          landing_page: referer || null, // Usando referer como landing page aproximada ou a própria URL se disponível no client
           referrer: referer,
           produto: produto,
-          fonte_de_trafego: fonte_de_trafego || utm_source || 'direct',
-          tipo_de_funil: tipo_de_funil,
-          region_name: location.region_name,
           created_at: new Date().toISOString()
         };
 
         console.log('📝 Inserindo visita...');
         const { data: visitData, error: visitError } = await supabase
-          .from('oreino360-visitas')
+          .schema('tbz')
+          .from('visitas')
           .insert(visitaPayload)
           .select();
 
@@ -440,46 +398,28 @@ Deno.serve(async (req: Request): Promise<Response> => {
       } catch (error) {
         console.error('❌ Erro geral na visita:', error);
       }
-    } else if (['page_view', 'visit'].includes(event_type) && shouldSkipVisit) {
-      console.log('⏭️ Visita pulada devido à deduplicação');
     }
 
-    // === INSERIR LEAD ===
-    console.log('🔍 Verificando condições para inserir lead:');
-    console.log('  - event_type:', event_type);
-    console.log('  - name:', name);
-    console.log('  - email:', email);
-    console.log('  - phone:', phone);
-    console.log('  - Condição atendida:', event_type?.toLowerCase() === 'lead_submit' && (name || email || phone));
-
-      if (event_type?.toLowerCase() === 'lead_submit' && (name || email || phone)) {
+    // === 6. INSERIR LEAD ===
+    if (event_type?.toLowerCase() === 'lead_submit' && (name || email || phone)) {
       console.log('✅ Condições atendidas! Iniciando inserção do lead...');
       try {
-        // Extrair urgency_level do payload principal ou do diagnosticResult
-        let urgencyLevel = urgency_level || null; // ✅ PRIORIZAR urgency_level do payload principal
-        
-        // Se não encontrou no payload principal, tentar extrair do diagnosticResult
+        // Extrair urgency_level
+        let urgencyLevel = urgency_level || null;
         if (!urgencyLevel && diagnosticResult && typeof diagnosticResult === 'object') {
           urgencyLevel = diagnosticResult.urgencyLevel || diagnosisLevel || null;
         } else if (!urgencyLevel && diagnosisLevel) {
           urgencyLevel = diagnosisLevel;
         }
 
-        // Converter valores de inglês para português e maiúscula para atender a constraint da tabela
+        // Normalizar urgency_level
         if (urgencyLevel && typeof urgencyLevel === 'string') {
           const urgencyMap: { [key: string]: string } = {
-            'high': 'ALTA',
-            'critical': 'CRÍTICA', 
-            'emergency': 'EMERGENCIAL',
-            'baixa': 'BAIXA',
-            'média': 'MÉDIA',
-            'media': 'MÉDIA',
-            'alta': 'ALTA',
-            'crítica': 'CRÍTICA',
-            'critica': 'CRÍTICA',
+            'high': 'ALTA', 'critical': 'CRÍTICA', 'emergency': 'EMERGENCIAL',
+            'baixa': 'BAIXA', 'média': 'MÉDIA', 'media': 'MÉDIA',
+            'alta': 'ALTA', 'crítica': 'CRÍTICA', 'critica': 'CRÍTICA',
             'emergencial': 'EMERGENCIAL'
           };
-          
           const normalizedLevel = urgencyLevel.toLowerCase();
           urgencyLevel = urgencyMap[normalizedLevel] || urgencyLevel.toUpperCase();
         }
@@ -488,67 +428,51 @@ Deno.serve(async (req: Request): Promise<Response> => {
           name: name || null,
           email: email || null,
           phone: phone || null,
-          traffic_id: trafficId,
-          fingerprint_hash: fingerprintHash, // ✅ Referência ao identificador
-          fonte_de_trafego: fonte_de_trafego || utm_source || 'direct',
-          tipo_de_funil: tipo_de_funil,
           urgency_level: urgencyLevel,
+          fingerprint_hash: fingerprintHash, // FK (Opcional, mas temos aqui)
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
 
-        console.log('📝 Inserindo lead com urgency_level:', urgencyLevel);
-        console.log('🔍 Lead payload completo:', JSON.stringify(leadPayload, null, 2));
+        console.log('📝 Inserindo lead...');
+        // Upsert no lead baseado no email
         const { data: leadData, error: leadError } = await supabase
-          .from('oreino360-leads')
-          .insert(leadPayload)
-          .select();
-
-        console.log('📊 Resultado da inserção do lead:');
-        console.log('  - leadData:', JSON.stringify(leadData, null, 2));
-        console.log('  - leadError:', JSON.stringify(leadError, null, 2));
+          .schema('tbz')
+          .from('leads')
+          .upsert(leadPayload, { onConflict: 'email' })
+          .select('id')
+          .single();
 
         if (leadError) {
           console.error('❌ Erro ao inserir lead:', leadError);
-          console.error('❌ Detalhes completos do erro:', JSON.stringify(leadError, null, 2));
         } else {
-          const leadId = leadData?.[0]?.id;
-          console.log('✅ Lead inserido:', leadId);
+          const leadId = leadData.id;
+          console.log('✅ Lead inserido/atualizado:', leadId);
 
-          // Inserir associação do produto se o lead foi criado com sucesso
-          console.log('🔍 Verificando condições para inserir produto:', { leadId, produto });
-          if (leadId && produto) {
+          // Inserir associação do produto
+          if (produto) {
             try {
               const productPayload = {
-                lead_id: leadId,
+                lead_id: leadId, // FK
                 produto: produto,
                 created_at: new Date().toISOString()
               };
 
-              console.log('📝 Inserindo associação de produto com payload:', JSON.stringify(productPayload, null, 2));
-              const { data: productData, error: productError } = await supabase
-                .from('oreino360-lead_products')
-                .insert(productPayload)
-                .select();
+              console.log('📝 Inserindo associação de produto...');
+              // Verificar se já existe para não duplicar (embora não tenhamos unique constraint explicita além do ID, é bom evitar spam)
+              const { error: productError } = await supabase
+                .schema('tbz')
+                .from('lead_products')
+                .insert(productPayload);
 
               if (productError) {
                 console.error('❌ Erro ao inserir produto do lead:', productError);
-                console.error('❌ Detalhes do erro:', JSON.stringify(productError, null, 2));
               } else {
-                console.log('✅ Produto do lead inserido com sucesso:', produto);
-                console.log('✅ Dados inseridos:', JSON.stringify(productData, null, 2));
+                console.log('✅ Produto do lead inserido com sucesso.');
               }
             } catch (productErr) {
               console.error('❌ Erro geral no produto do lead:', productErr);
-              console.error('❌ Stack trace:', productErr.stack);
             }
-          } else {
-            console.log('⚠️ Condições não atendidas para inserir produto:', { 
-              leadId: !!leadId, 
-              produto: !!produto,
-              leadIdValue: leadId,
-              produtoValue: produto
-            });
           }
         }
       } catch (error) {
@@ -558,28 +482,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     console.log('=== TRACK-MAIN REQUEST END ===');
 
-    // Informações de debug para a resposta
     const debugInfo = {
       event_type: event_type,
-      lead_conditions: {
-        is_lead_submit: event_type?.toLowerCase() === 'lead_submit',
-        has_name: !!name,
-        has_email: !!email,
-        has_phone: !!phone,
-        should_insert_lead: (event_type?.toLowerCase() === 'lead_submit') && (!!name || !!email || !!phone)
-      },
-      payload_received: {
-        name: name || null,
-        email: email || null,
-        phone: phone || null,
-        urgency_level: urgency_level || null,
-        traffic_id: trafficId
-      }
+      session_id: sessionId,
+      fingerprint_hash: fingerprintHash,
+      lead_processed: event_type?.toLowerCase() === 'lead_submit'
     };
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         message: 'Event tracked successfully',
         fingerprint_hash: fingerprintHash,
         session_id: sessionId,

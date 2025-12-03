@@ -1,26 +1,26 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts" // Revertido para usar a URL direta
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.44.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', // Garantir que GET e POST são permitidos
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Max-Age': '86400',
 }
 
 interface VisitData {
   id: string;
   session_id: string;
-  ip_address: string;
+  // ip_address: string; // Removido por privacidade/não necessidade no frontend geralmente, mas se precisar, adicionar de volta
   country_code: string;
   city: string;
   country_name: string;
-  user_agent: string;
+  // user_agent: string;
   referrer: string | null;
   landing_page: string | null;
   produto: string;
-  fonte_de_trafego: string | null; // Renomeado
-  tipo_de_funil: string | null; // Adicionado
+  fonte_de_trafego: string | null; // Agora vem de sessoes
+  tipo_de_funil: string | null; // Agora vem de sessoes
   created_at: string;
 }
 
@@ -28,7 +28,7 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
-  
+
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
@@ -39,51 +39,53 @@ serve(async (req: Request) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
-    
+
     let date_filter: string | null = null;
     let custom_date: string | null = null;
-    let produto: string | null = null; 
-    let fonte_de_trafego: string | null = null; // Renomeado
-    let tipo_de_funil: string | null = null; // Adicionado
+    let produto: string | null = null;
+    let fonte_de_trafego: string | null = null;
+    let tipo_de_funil: string | null = null;
 
     if (req.method === 'GET') {
       const url = new URL(req.url);
       date_filter = url.searchParams.get('date_filter');
       custom_date = url.searchParams.get('custom_date');
       produto = url.searchParams.get('produto');
-      fonte_de_trafego = url.searchParams.get('fonte_de_trafego'); // Renomeado
-      tipo_de_funil = url.searchParams.get('tipo_de_funil'); // Adicionado
+      fonte_de_trafego = url.searchParams.get('fonte_de_trafego');
+      tipo_de_funil = url.searchParams.get('tipo_de_funil');
     } else if (req.method === 'POST') {
       const body = await req.json();
       date_filter = body.date_filter;
       custom_date = body.custom_date;
       produto = body.produto;
-      fonte_de_trafego = body.fonte_de_trafego; // Renomeado
-      tipo_de_funil = body.tipo_de_funil; // Adicionado
+      fonte_de_trafego = body.fonte_de_trafego;
+      tipo_de_funil = body.tipo_de_funil;
     }
-    
+
     const effectiveDateFilter = date_filter || 'all';
-    
+
+    // Visitas agora está em tbz.visitas, mas fonte_de_trafego e tipo_de_funil estão em tbz.sessoes
+    // Precisamos de um join
     let query = supabase
-      .schema('public')
-      .from('oreino360-visitas') 
-      .select('id, session_id, ip_address, country_code, city, country_name, user_agent, referrer, landing_page, created_at, produto, fonte_de_trafego, tipo_de_funil') // Usando fonte_de_trafego e tipo_de_funil
+      .schema('tbz')
+      .from('visitas')
+      .select('id, session_id, landing_page, referrer, produto, created_at, sessoes!inner(country_code, city, fonte_de_trafego, tipo_de_funil)')
       .order('created_at', { ascending: false })
-    
+
     if (produto && produto !== 'all') {
       query = query.eq('produto', produto);
     }
-    if (fonte_de_trafego && fonte_de_trafego !== 'all') { // Renomeado
-      query = query.eq('fonte_de_trafego', fonte_de_trafego);
+    if (fonte_de_trafego && fonte_de_trafego !== 'all') {
+      query = query.eq('sessoes.fonte_de_trafego', fonte_de_trafego);
     }
-    if (tipo_de_funil && tipo_de_funil !== 'all') { // Adicionado
-      query = query.eq('tipo_de_funil', tipo_de_funil);
+    if (tipo_de_funil && tipo_de_funil !== 'all') {
+      query = query.eq('sessoes.tipo_de_funil', tipo_de_funil);
     }
 
     const now = new Date()
     let startDate: Date | null = null;
     let endDate: Date | null = null;
-    
+
     switch (effectiveDateFilter) {
       case 'today':
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -120,41 +122,38 @@ serve(async (req: Request) => {
     if (startDate && endDate) {
       query = query.gte('created_at', startDate.toISOString()).lt('created_at', endDate.toISOString());
     }
-    
+
     const { data, error } = await query.limit(100)
-    
+
     if (error) {
-      // Logar o erro do Supabase para debug
       console.error("Supabase Query Error in get-visits:", error);
       return new Response(
         JSON.stringify({ error: error.message }),
-        { 
-          status: 500, 
+        {
+          status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
 
-    const mappedData = data?.map((visit: VisitData) => ({
-        id: visit.id,
-        session_id: visit.session_id,
-        ip_address: visit.ip_address,
-        country_code: visit.country_code,
-        city: visit.city,
-        country_name: visit.country_name,
-        user_agent: visit.user_agent,
-        referrer: visit.referrer,
-        landing_page: visit.landing_page,
-        produto: visit.produto,
-        fonte_de_trafego: visit.fonte_de_trafego, // Mapeia fonte_de_trafego
-        tipo_de_funil: visit.tipo_de_funil, // Mapeia tipo_de_funil
-        created_at: visit.created_at,
+    const mappedData = data?.map((visit: any) => ({
+      id: visit.id,
+      session_id: visit.session_id,
+      country_code: visit.sessoes?.country_code,
+      city: visit.sessoes?.city,
+      country_name: visit.sessoes?.country_code === 'BR' ? 'Brazil' : visit.sessoes?.country_code, // Simplificação
+      referrer: visit.referrer,
+      landing_page: visit.landing_page,
+      produto: visit.produto,
+      fonte_de_trafego: visit.sessoes?.fonte_de_trafego,
+      tipo_de_funil: visit.sessoes?.tipo_de_funil,
+      created_at: visit.created_at,
     })) || [];
-    
+
     return new Response(
       JSON.stringify({ visits: mappedData }),
-      { 
-        status: 200, 
+      {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
@@ -162,8 +161,8 @@ serve(async (req: Request) => {
     console.error("Error in get-visits function:", error);
     return new Response(
       JSON.stringify({ error: (error as Error).message }),
-      { 
-        status: 500, 
+      {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
