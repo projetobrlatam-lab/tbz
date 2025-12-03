@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,13 +17,20 @@
   <meta name="msapplication-config" content="/browserconfig.xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.onerror = function (message, source, lineno, colno, error) {
+      console.error('Global Error:', message, source, lineno, error);
+      // alert('Erro Global: ' + message + '\nLinha: ' + lineno); // Comentado para não incomodar se não for crítico, mas útil para debug
+    };
+  </script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-            colors: {
+          colors: {
             // Nova paleta baseada na imagem do usuário
             'primary': '#FF5F5D', // Red/Pink
             'primary-dark': '#E64A48', // Darker shade of Red/Pink
@@ -57,7 +65,7 @@
       }
     }
   </script>
-<script type="importmap">
+  <script type="importmap">
 {
   "imports": {
     "react/": "https://aistudiocdn.com/react@^19.1.1/",
@@ -66,23 +74,29 @@
   }
 }
 </script>
-<script type="text/javascript">
-(function(g,u,r,i,d,e,a){g.DimppleAnalyticsObject=d;if(!(d in g)){g[d]=function(){
-g[d].q.push(arguments);};g[d].q=[];}g[d].l=(new Date()).getTime();var e=u.createElement(r);
-e.src=i;e.async=true;var a=u.getElementsByTagName(r)[0];a.parentNode.insertBefore(e,a)
-})(window,document,'script','https://api.dimpple.com/public/js/analytics.js?trk=7579.3zUNOQ.6637ead0','trk');
+  <script type="text/javascript">
+      (function (g, u, r, i, d, e, a) {
+        g.DimppleAnalyticsObject = d; if (!(d in g)) {
+          g[d] = function () {
+            g[d].q.push(arguments);
+          }; g[d].q = [];
+        } g[d].l = (new Date()).getTime(); var e = u.createElement(r);
+        e.src = i; e.async = true; var a = u.getElementsByTagName(r)[0]; a.parentNode.insertBefore(e, a)
+      })(window, document, 'script', 'https://api.dimpple.com/public/js/analytics.js?trk=7579.3zUNOQ.6637ead0', 'trk');
 
-// Inicializar o page view manualmente
-window.addEventListener('load', function() {
-  if (typeof trk !== 'undefined') {
-    trk('page_view');
-  }
-});
-</script>
-<link rel="stylesheet" href="./index.css">
+    // Inicializar o page view manualmente
+    window.addEventListener('load', function () {
+      if (typeof trk !== 'undefined') {
+        trk('page_view');
+      }
+    });
+  </script>
+  <link rel="stylesheet" href="./index.css">
 </head>
+
 <body class="bg-background text-text-primary font-sans antialiased">
   <div id="root"></div>
   <script type="module" src="./main.tsx"></script>
 </body>
+
 </html>
