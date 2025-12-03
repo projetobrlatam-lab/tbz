@@ -20,8 +20,8 @@ serve(async (req: Request) => {
     const fonte_de_trafego = url.searchParams.get('fonte_de_trafego');
     const tipo_de_funil = url.searchParams.get('tipo_de_funil');
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? Deno.env.get('PROD_SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('PROD_SUPABASE_KEY');
 
     if (!supabaseUrl) {
       throw new Error('SUPABASE_URL environment variable is not set for the Edge Function.');
