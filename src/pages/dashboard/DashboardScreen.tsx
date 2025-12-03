@@ -5,12 +5,11 @@ import * as api from '../../api/client';
 import { User, Session } from '@supabase/supabase-js';
 const Reino360Logo = '/reino-360-logo.png';
 
-// Child components commented out for debugging
-// import BuyersScreen from './BuyersScreen';
-// import VisitsScreen from './VisitsScreen';
-// import LeadsScreen from './LeadsScreen';
-// import AbandonmentScreen from './AbandonmentScreen';
-// import ProductsScreen from './ProductsScreen';
+import BuyersScreen from './BuyersScreen';
+import VisitsScreen from './VisitsScreen';
+import LeadsScreen from './LeadsScreen';
+import AbandonmentScreen from './AbandonmentScreen';
+// import ProductsScreen from './ProductsScreen'; // Keeping ProductsScreen disabled for debugging
 import BarChart from '../../components/charts/BarChart';
 
 interface DashboardScreenProps {
@@ -460,16 +459,22 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               </>
             )}
             {activeTab === 'abandonment' && (
-              <div className="p-4 bg-yellow-100 text-yellow-800 rounded">Tela de Abandono desativada para debug</div>
+              <AbandonmentScreen
+                dateFilter={dateFilter}
+                customDate={customDate}
+                produto={selectedProduct}
+                fonteDeTrafego={selectedFonteDeTrafego}
+                tipoDeFunil={selectedTipoDeFunil}
+              />
             )}
             {activeTab === 'visits' && (
-              <div className="p-4 bg-yellow-100 text-yellow-800 rounded">Tela de Visitas desativada para debug</div>
+              <VisitsScreen dateFilter={dateFilter} customDate={customDate} produto={selectedProduct} fonteDeTrafego={selectedFonteDeTrafego} tipoDeFunil={selectedTipoDeFunil} />
             )}
             {activeTab === 'buyers' && (
-              <div className="p-4 bg-yellow-100 text-yellow-800 rounded">Tela de Compradores desativada para debug</div>
+              <BuyersScreen dateFilter={dateFilter} customDate={customDate} produto={selectedProduct} />
             )}
             {activeTab === 'crm' && (
-              <div className="p-4 bg-yellow-100 text-yellow-800 rounded">Tela de Leads desativada para debug</div>
+              <LeadsScreen dateFilter={dateFilter} customDate={customDate} produto={selectedProduct} fonteDeTrafego={selectedFonteDeTrafego} tipoDeFunil={selectedTipoDeFunil} />
             )}
             {activeTab === 'products' && (
               <div className="p-4 bg-yellow-100 text-yellow-800 rounded">Tela de Produtos desativada para debug</div>
