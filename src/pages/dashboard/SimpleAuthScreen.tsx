@@ -80,15 +80,15 @@ export default function SimpleAuthScreen({ onLogin }: SimpleAuthScreenProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 font-sans">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary-dark via-secondary to-secondary-dark p-4 font-sans">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden p-8 md:p-10">
 
         {/* Logo Section */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-48 h-24 bg-gradient-to-br from-gray-50 to-white rounded-xl shadow-lg border-2 border-[#D4AF37] p-4 mb-4">
-            <img src="/reino-360-logo.png" alt="Reino 360 Logo" className="w-full h-full object-contain" />
+          <div className="inline-flex items-center justify-center w-64 h-32 bg-white rounded-xl shadow-lg border-2 border-primary p-4 mb-4">
+            <img src="/logo-promotor21.png" alt="Promotor21 Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-2xl font-semibold text-gray-900 mt-2">
+          <h1 className="text-2xl font-semibold text-text-primary mt-2">
             {view === 'sign_in' && 'Acesse sua conta'}
             {view === 'sign_up' && 'Crie sua conta'}
             {view === 'forgotten_password' && 'Recuperar senha'}
@@ -113,7 +113,7 @@ export default function SimpleAuthScreen({ onLogin }: SimpleAuthScreenProps) {
             <button
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 font-medium py-3 px-4 rounded-lg hover:bg-gray-50 hover:border-[#D4AF37] hover:shadow-md transition-all duration-200 mb-6"
+              className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-text-secondary font-medium py-3 px-4 rounded-lg hover:bg-gray-50 hover:border-primary hover:shadow-md transition-all duration-200 mb-6"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -150,26 +150,26 @@ export default function SimpleAuthScreen({ onLogin }: SimpleAuthScreenProps) {
         {/* Email Form */}
         <form onSubmit={handleEmailAuth} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
               placeholder="seu@email.com"
             />
           </div>
 
           {view !== 'forgotten_password' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+              <label className="block text-sm font-medium text-text-secondary mb-1">Senha</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -178,7 +178,7 @@ export default function SimpleAuthScreen({ onLogin }: SimpleAuthScreenProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] text-white font-semibold py-3 px-4 rounded-lg hover:from-[#B8941F] hover:to-[#9A7A1A] transform hover:-translate-y-0.5 transition-all duration-200 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+            className="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-semibold py-3 px-4 rounded-lg hover:from-primary-dark hover:to-primary transform hover:-translate-y-0.5 transition-all duration-200 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
           >
             {loading ? 'Processando...' : (
               view === 'sign_in' ? 'Entrar' :
@@ -194,7 +194,7 @@ export default function SimpleAuthScreen({ onLogin }: SimpleAuthScreenProps) {
             <>
               <button
                 onClick={() => setView('forgotten_password')}
-                className="text-sm text-[#D4AF37] hover:text-[#B8941F] font-medium transition-colors"
+                className="text-sm text-primary hover:text-primary-dark font-medium transition-colors"
               >
                 Esqueci minha senha
               </button>
@@ -202,7 +202,7 @@ export default function SimpleAuthScreen({ onLogin }: SimpleAuthScreenProps) {
                 Ainda não tem uma conta?{' '}
                 <button
                   onClick={() => setView('sign_up')}
-                  className="text-[#D4AF37] hover:text-[#B8941F] font-medium transition-colors"
+                  className="text-primary hover:text-primary-dark font-medium transition-colors"
                 >
                   Criar conta
                 </button>
@@ -215,7 +215,7 @@ export default function SimpleAuthScreen({ onLogin }: SimpleAuthScreenProps) {
               Já tem uma conta?{' '}
               <button
                 onClick={() => setView('sign_in')}
-                className="text-[#D4AF37] hover:text-[#B8941F] font-medium transition-colors"
+                className="text-primary hover:text-primary-dark font-medium transition-colors"
               >
                 Entrar
               </button>
@@ -225,7 +225,7 @@ export default function SimpleAuthScreen({ onLogin }: SimpleAuthScreenProps) {
           {view === 'forgotten_password' && (
             <button
               onClick={() => setView('sign_in')}
-              className="text-sm text-[#D4AF37] hover:text-[#B8941F] font-medium transition-colors"
+              className="text-sm text-primary hover:text-primary-dark font-medium transition-colors"
             >
               Voltar para o login
             </button>

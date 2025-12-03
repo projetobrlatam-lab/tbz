@@ -3,7 +3,7 @@ import { debounce } from 'lodash';
 import { supabase } from '../../integrations/supabase/client';
 import * as api from '../../api/client';
 import { User, Session } from '@supabase/supabase-js';
-const Reino360Logo = '/reino-360-logo.png';
+const Reino360Logo = '/logo-promotor21.png';
 
 import BuyersScreen from './BuyersScreen';
 import VisitsScreen from './VisitsScreen';
@@ -304,7 +304,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
-              <img src={Reino360Logo} alt="Reino 360" className="h-12 w-auto" />
+              <img src={Reino360Logo} alt="Promotor21" className="h-12 w-auto" />
             </div>
             <div className="flex items-center space-x-4">
               {/* Filtro de Produto */}
