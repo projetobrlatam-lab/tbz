@@ -304,7 +304,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
-              <img src={Reino360Logo} alt="Promotor21" className="h-12 w-auto" />
+              <img src={Reino360Logo} alt="Promotor21" className="h-20 w-auto" />
             </div>
             <div className="flex items-center space-x-4">
               {/* Filtro de Produto */}

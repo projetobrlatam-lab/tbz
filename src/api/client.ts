@@ -204,69 +204,7 @@ export const trackEvent = async (eventType: EventType, payload?: any): Promise<a
   }
 };
 
-export const recordAbandonment = async (
-  step: string,
-  reason: string = 'fechamento_janela',
-  produto: string,
-  fonteDeTrafego: string, // Espera-se uma string resolvida
-  tipoDeFunil: string,
-  leadEmail?: string,
-  instagramId?: string | null
-): Promise<void> => {
-  try {
-    const sessionId = getSessionId();
 
-    if (!produto || !tipoDeFunil) {
-      console.error('Produto ou Tipo de Funil ausente para recordAbandonment.');
-      return;
-    }
-
-    // NÃO enviar fingerprint_hash do frontend - deixar o backend buscar da tabela identificador
-    console.log(`[recordAbandonment] Enviando abandono sem fingerprint_hash para que o backend busque da tabela identificador`);
-
-    const payload = {
-      session_id: sessionId,
-      reason,
-      step_where_abandoned: step,
-      produto,
-      fonte_de_trafego: fonteDeTrafego,
-      tipo_de_funil: tipoDeFunil,
-      email: leadEmail || undefined,
-      traffic_id: instagramId || undefined,
-      // fingerprint_hash removido - backend vai buscar da tabela identificador
-    };
-
-    const url = `${SUPABASE_URL}/functions/v1/track-abandonment`;
-
-    // Tenta sendBeacon, mas SEMPRE prossegue com fetch keepalive para garantir cabeçalhos JWT
-    const supportsBeacon = typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function';
-    if (supportsBeacon) {
-      try {
-        const body = JSON.stringify(payload);
-        const blob = new Blob([body], { type: 'application/json' });
-        const ok = navigator.sendBeacon(url, blob);
-        console.log(`[recordAbandonment] sendBeacon tentado: ${ok}. Continuando com fetch keepalive para garantir headers.`);
-      } catch (beaconErr) {
-        console.warn('[recordAbandonment] Falha no sendBeacon, seguindo com fetch keepalive:', beaconErr);
-      }
-    }
-
-    await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'apikey': SUPABASE_ANON_KEY
-      },
-      body: JSON.stringify(payload),
-      keepalive: true
-    });
-    console.log('[recordAbandonment] Abandonment data sent via fetch with keepalive.');
-
-  } catch (error) {
-    console.error('Erro ao registrar abandono (fetch/beacon):', error);
-  }
-};
 
 export const assignTagToLead = async (leadId: string, tagName: string, produto: string, description?: string): Promise<LeadTagAssignment | null> => {
   try {
@@ -625,6 +563,63 @@ export const getAbandonmentData = async (
   }
 
   return response.json();
+};
+
+// --- Product Management ---
+
+export const recordAbandonment = async (
+  step: string,
+  reason: string = 'fechamento_janela',
+  produto: string,
+  fonteDeTrafego: string,
+  tipoDeFunil: string,
+  leadEmail?: string,
+  instagramId?: string | null
+): Promise<void> => {
+  try {
+    const sessionId = getSessionId();
+
+    if (!produto || !tipoDeFunil) {
+      console.error('Produto ou Tipo de Funil ausente para recordAbandonment.');
+      return;
+    }
+
+    const payload = {
+      session_id: sessionId,
+      step_where_abandoned: step,
+      reason: reason,
+      produto: produto,
+      // fingerprint_hash: ... (deixando nulo por enquanto, ou pegando do cache se disponível)
+    };
+
+    // Tentar pegar fingerprint do cache se existir (opcional)
+    const cachedFingerprint = safeSessionStorage.get('quiz_fingerprint');
+    if (cachedFingerprint) {
+      Object.assign(payload, { fingerprint_hash: cachedFingerprint });
+    }
+
+    // URL para a tabela 'abandono' no schema 'tbz'
+    const url = `${SUPABASE_URL}/rest/v1/abandono`;
+
+    // Usar fetch com keepalive para garantir envio no fechamento da aba
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY,
+        'Content-Profile': 'tbz', // Importante: aponta para o schema tbz
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload),
+      keepalive: true
+    });
+
+    console.log('[recordAbandonment] Dados de abandono enviados com sucesso (tbz.abandono).', payload);
+
+  } catch (error) {
+    console.error('Erro ao registrar abandono:', error);
+  }
 };
 
 // --- Product Management ---
