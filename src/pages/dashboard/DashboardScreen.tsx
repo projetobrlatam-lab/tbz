@@ -477,7 +477,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               <LeadsScreen dateFilter={dateFilter} customDate={customDate} produto={selectedProduct} fonteDeTrafego={selectedFonteDeTrafego} tipoDeFunil={selectedTipoDeFunil} />
             )}
             {activeTab === 'products' && (
-              <div className="p-4 bg-yellow-100 text-yellow-800 rounded">Tela de Produtos desativada para debug</div>
+              <ProductsScreen />
             )}
           </>
         )}
