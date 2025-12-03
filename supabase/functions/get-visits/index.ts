@@ -64,16 +64,19 @@ serve(async (req: Request) => {
 
     const effectiveDateFilter = date_filter || 'all';
 
-    // Visitas agora está em tbz.visitas, mas fonte_de_trafego e tipo_de_funil estão em tbz.sessoes
-    // Precisamos de um join
+    // Visitas agora busca de tbz.identificador (único) e faz join com sessoes para dados de campanha
     let query = supabase
       .schema('tbz')
-      .from('visitas')
+      .from('identificador')
       .select(`
         id,
         created_at,
+        original_ip,
+        city,
+        country_code,
+        region_name,
+        fingerprint_hash,
         sessoes!inner(
-          ip_address,
           fonte_de_trafego,
           tipo_de_funil,
           produto
@@ -82,7 +85,7 @@ serve(async (req: Request) => {
       .order('created_at', { ascending: false })
 
     if (produto && produto !== 'all') {
-      query = query.eq('produto', produto);
+      query = query.eq('sessoes.produto', produto);
     }
     if (fonte_de_trafego && fonte_de_trafego !== 'all') {
       query = query.eq('sessoes.fonte_de_trafego', fonte_de_trafego);
@@ -145,19 +148,25 @@ serve(async (req: Request) => {
       )
     }
 
-    const mappedData = data?.map((visit: any) => ({
-      id: visit.id,
-      session_id: visit.session_id,
-      country_code: visit.sessoes?.country_code,
-      city: visit.sessoes?.city,
-      country_name: visit.sessoes?.country_code === 'BR' ? 'Brazil' : visit.sessoes?.country_code, // Simplificação
-      referrer: visit.referrer,
-      landing_page: visit.landing_page,
-      produto: visit.produto,
-      fonte_de_trafego: visit.sessoes?.fonte_de_trafego,
-      tipo_de_funil: visit.sessoes?.tipo_de_funil,
-      created_at: visit.created_at,
-    })) || [];
+    const mappedData = data?.map((visit: any) => {
+      // sessoes vem como array, pegamos o primeiro (ou o mais recente se a query ordenasse sessoes, mas aqui pegamos qualquer um que bateu)
+      const session = Array.isArray(visit.sessoes) ? visit.sessoes[0] : visit.sessoes;
+
+      return {
+        id: visit.id,
+        session_id: visit.fingerprint_hash, // Usando fingerprint como ID de sessão visual por enquanto, ou poderia ser o ID do identificador
+        country_code: visit.country_code,
+        city: visit.city,
+        country_name: visit.country_code === 'BR' ? 'Brazil' : visit.country_code,
+        referrer: null, // Identificador não tem referrer
+        landing_page: null, // Identificador não tem landing_page
+        produto: session?.produto,
+        fonte_de_trafego: session?.fonte_de_trafego,
+        tipo_de_funil: session?.tipo_de_funil,
+        created_at: visit.created_at,
+        ip_address: visit.original_ip
+      };
+    }) || [];
 
     return new Response(
       JSON.stringify({ visits: mappedData }),

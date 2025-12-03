@@ -33,21 +33,30 @@ serve(async (req: Request) => {
 
     let query = supabase
       .schema('tbz')
-      .from('sessoes')
-      .select('created_at, produto, fonte_de_trafego, tipo_de_funil')
+      .from('identificador')
+      .select(`
+        created_at,
+        region_name,
+        sessoes!inner(
+          produto,
+          fonte_de_trafego,
+          tipo_de_funil
+        )
+      `)
       .limit(10000);
 
     // Aplica filtros de produto, fonte_de_trafego e tipo_de_funil
     let filterFn = (visit: any) => {
+      const session = Array.isArray(visit.sessoes) ? visit.sessoes[0] : visit.sessoes;
       let passes = true;
       if (produto && produto !== 'all') {
-        passes = passes && visit.produto === produto;
+        passes = passes && session?.produto === produto;
       }
       if (fonte_de_trafego && fonte_de_trafego !== 'all') {
-        passes = passes && visit.fonte_de_trafego === fonte_de_trafego;
+        passes = passes && session?.fonte_de_trafego === fonte_de_trafego;
       }
       if (tipo_de_funil && tipo_de_funil !== 'all') {
-        passes = passes && visit.tipo_de_funil === tipo_de_funil;
+        passes = passes && session?.tipo_de_funil === tipo_de_funil;
       }
       return passes;
     };
@@ -93,8 +102,7 @@ serve(async (req: Request) => {
     // Agregação por region_name
     const aggregation: { [key: string]: number } = {};
     filteredData.forEach((visit: any) => {
-      // Como não temos dados de localização na tabela tbz.visitas ainda, retornamos 'Unknown'
-      const key = 'Unknown';
+      const key = visit.region_name || 'Unknown';
       aggregation[key] = (aggregation[key] || 0) + 1;
     });
 
