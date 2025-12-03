@@ -12,7 +12,7 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
-  
+
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
@@ -20,10 +20,10 @@ serve(async (req: Request) => {
     }
 
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_URL') ?? Deno.env.get('PROD_SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('PROD_SUPABASE_KEY') ?? ''
     )
-    
+
     const url = new URL(req.url);
     const produto = url.searchParams.get('produto');
     const fonte_de_trafego = url.searchParams.get('fonte_de_trafego'); // Renomeado
@@ -32,24 +32,24 @@ serve(async (req: Request) => {
     const custom_date = url.searchParams.get('custom_date');
 
     let query = supabase
-      .schema('public')
-      .from('oreino360-visitas')
-      .select('country_code, region_name, created_at, produto, fonte_de_trafego, tipo_de_funil') // Adicionado region_name
-      .limit(10000); 
+      .schema('tbz')
+      .from('visitas')
+      .select('created_at, produto, fonte_de_trafego, tipo_de_funil')
+      .limit(10000);
 
     // Aplica filtros de produto, fonte_de_trafego e tipo_de_funil
     let filterFn = (visit: any) => {
-        let passes = true;
-        if (produto && produto !== 'all') {
-            passes = passes && visit.produto === produto;
-        }
-        if (fonte_de_trafego && fonte_de_trafego !== 'all') {
-            passes = passes && visit.fonte_de_trafego === fonte_de_trafego;
-        }
-        if (tipo_de_funil && tipo_de_funil !== 'all') {
-            passes = passes && visit.tipo_de_funil === tipo_de_funil;
-        }
-        return passes;
+      let passes = true;
+      if (produto && produto !== 'all') {
+        passes = passes && visit.produto === produto;
+      }
+      if (fonte_de_trafego && fonte_de_trafego !== 'all') {
+        passes = passes && visit.fonte_de_trafego === fonte_de_trafego;
+      }
+      if (tipo_de_funil && tipo_de_funil !== 'all') {
+        passes = passes && visit.tipo_de_funil === tipo_de_funil;
+      }
+      return passes;
     };
 
     // Aplica filtros de data
@@ -82,32 +82,32 @@ serve(async (req: Request) => {
 
     // Filtragem de data e filtros de produto/funil no lado da Edge Function
     const filteredData = rawData.filter((visit: any) => {
-        const visitDate = new Date(visit.created_at).getTime();
-        let datePasses = true;
-        if (startDate && endDate) {
-            datePasses = visitDate >= startDate.getTime() && visitDate < endDate.getTime();
-        }
-        return datePasses && filterFn(visit);
+      const visitDate = new Date(visit.created_at).getTime();
+      let datePasses = true;
+      if (startDate && endDate) {
+        datePasses = visitDate >= startDate.getTime() && visitDate < endDate.getTime();
+      }
+      return datePasses && filterFn(visit);
     });
 
     // Agregação por region_name
     const aggregation: { [key: string]: number } = {};
     filteredData.forEach((visit: any) => {
-        // Usamos region_name se for Brasil, caso contrário, usamos country_name
-        const key = (visit.country_code === 'BR' && visit.region_name) ? visit.region_name : visit.country_name || 'Unknown';
-        aggregation[key] = (aggregation[key] || 0) + 1;
+      // Como não temos dados de localização na tabela tbz.visitas ainda, retornamos 'Unknown'
+      const key = 'Unknown';
+      aggregation[key] = (aggregation[key] || 0) + 1;
     });
 
     // Conversão para array e ordenação
     const aggregatedData = Object.entries(aggregation)
-        .map(([region_name, count]) => ({ region_name, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10); // Top 10
+      .map(([region_name, count]) => ({ region_name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10); // Top 10
 
     return new Response(
       JSON.stringify({ locations: aggregatedData }),
-      { 
-        status: 200, 
+      {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
@@ -115,8 +115,8 @@ serve(async (req: Request) => {
     console.error("Error in get-visit-locations function:", error);
     return new Response(
       JSON.stringify({ error: (error as Error).message }),
-      { 
-        status: 500, 
+      {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )

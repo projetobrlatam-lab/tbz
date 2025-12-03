@@ -36,7 +36,7 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
-  
+
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
@@ -44,10 +44,10 @@ serve(async (req: Request) => {
     }
 
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_URL') ?? Deno.env.get('PROD_SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('PROD_SUPABASE_KEY') ?? ''
     )
-    
+
     const url = new URL(req.url);
     const date_filter = url.searchParams.get('date_filter') || 'all';
     const custom_date = url.searchParams.get('custom_date');
@@ -71,7 +71,7 @@ serve(async (req: Request) => {
     const now = new Date();
     let startDate: Date | null = null;
     let endDate: Date | null = null;
-    
+
     switch (date_filter) {
       case 'today':
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -107,15 +107,15 @@ serve(async (req: Request) => {
 
     if (startDate) rpcParams.p_start_date = startDate.toISOString();
     if (endDate) rpcParams.p_end_date = endDate.toISOString();
-    
+
     const { data, error } = await supabase.rpc('get_leads_with_details', rpcParams);
-    
+
     if (error) {
       console.error('Erro ao chamar RPC get_leads_with_details:', error);
       return new Response(
         JSON.stringify({ error: error.message }),
-        { 
-          status: 500, 
+        {
+          status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
@@ -139,11 +139,11 @@ serve(async (req: Request) => {
         produto: lead.produto || 'N/A',
       };
     }) || [];
-    
+
     return new Response(
       JSON.stringify({ leads: leadsWithFormattedTags }),
-      { 
-        status: 200, 
+      {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
@@ -151,8 +151,8 @@ serve(async (req: Request) => {
     console.error("Error in get-leads-with-tags function:", error);
     return new Response(
       JSON.stringify({ error: (error as Error).message }),
-      { 
-        status: 500, 
+      {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
