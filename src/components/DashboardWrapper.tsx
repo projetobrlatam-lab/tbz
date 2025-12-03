@@ -7,7 +7,7 @@ import ErrorBoundary from './ErrorBoundary';
 
 const DashboardWrapper: React.FC = () => {
   const isBrowser = typeof window !== 'undefined';
-  
+
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(isBrowser ? false : null);
   const [isLoading, setIsLoading] = useState<boolean | null>(isBrowser ? true : null);
 
@@ -58,7 +58,7 @@ const DashboardWrapper: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-yellow-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary"></div>
       </div>
     );
   }

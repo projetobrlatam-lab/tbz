@@ -7,9 +7,17 @@ const Reino360Logo = '/reino-360-logo.png';
 
 import BuyersScreen from './BuyersScreen';
 import VisitsScreen from './VisitsScreen';
-import LeadsScreen from './LeadsScreen'; 
+import LeadsScreen from './LeadsScreen';
 import AbandonmentScreen from './AbandonmentScreen';
-import BarChart from '../../components/charts/BarChart'; // Importando o BarChart
+import ProductsScreen from './ProductsScreen'; // Importando ProductsScreen
+import BarChart from '../../components/charts/BarChart'; // Importando o BarChartsScreen
+
+// ... existing imports
+
+// ... inside DashboardScreen component
+const [activeTab, setActiveTab] = useState<'overview' | 'abandonment' | 'visits' | 'buyers' | 'crm' | 'products'>('overview');
+
+
 
 interface DashboardScreenProps {
   totalQuestions: number;
@@ -46,9 +54,9 @@ const ShoppingCartIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 const FilterIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
-    </svg>
+  <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
+  </svg>
 );
 
 const XCircleIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -111,7 +119,7 @@ const FunnelChart: React.FC<{ data: Array<{ step: string; count: number; percent
         {data.map((item, index) => {
           const widthPercentage = (item.count / maxCount) * 100;
           const color = getStepColor(item.step);
-          
+
           return (
             <div key={index} className="relative">
               <div className="flex justify-between items-end mb-1">
@@ -119,7 +127,7 @@ const FunnelChart: React.FC<{ data: Array<{ step: string; count: number; percent
                 <span className="text-xs font-semibold text-gray-500">{item.percentage}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-8 relative overflow-hidden">
-                <div 
+                <div
                   className={`h-8 rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-3 ${color}`}
                   style={{ width: `${widthPercentage}%` }}
                 >
@@ -138,20 +146,35 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'abandonment' | 'visits' | 'buyers' | 'crm'>('overview'); 
+  const [activeTab, setActiveTab] = useState<'overview' | 'abandonment' | 'visits' | 'buyers' | 'crm' | 'products'>('overview');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'yesterday' | 'custom'>('all');
   const [customDate, setCustomDate] = useState<string>('');
   const [selectedProduct, setSelectedProduct] = useState<string>('all');
   const [selectedFonteDeTrafego, setSelectedFonteDeTrafego] = useState<string>('all'); // Renomeado
   const [selectedTipoDeFunil, setSelectedTipoDeFunil] = useState<string>('all'); // Novo estado
+
   const [session, setSession] = useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [products, setProducts] = useState<any[]>([]); // Estado para produtos
+
+  // Fetch products for filter
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await api.getProducts();
+        setProducts(data);
+      } catch (err) {
+        console.error('Erro ao carregar produtos para filtro:', err);
+      }
+    };
+    loadProducts();
+  }, []);
 
   // Debounced version of fetchInitialData to prevent excessive calls
   const debouncedFetchInitialData = useCallback(
     debounce(async () => {
       if (!isAuthenticated) return;
-      
+
       console.log('🔄 [DashboardScreen] Iniciando fetchInitialData...');
       setLoading(true);
       try {
@@ -159,13 +182,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
         const fetchedMetrics = await api.getMetrics(dateFilter, customDate, selectedProduct, selectedFonteDeTrafego, selectedTipoDeFunil);
         console.log('📊 [DashboardScreen] Dados recebidos:', fetchedMetrics);
         console.log('📈 [DashboardScreen] Abandonment by Step:', fetchedMetrics.abandonment_by_step);
-        
-        setMetrics(prevMetrics => {
+
+        setMetrics((prevMetrics: any) => {
           console.log('🔄 [DashboardScreen] Atualizando estado - Anterior:', prevMetrics);
           console.log('🔄 [DashboardScreen] Atualizando estado - Novo:', fetchedMetrics);
           return fetchedMetrics;
         });
-        
+
         console.log('✅ [DashboardScreen] Estado atualizado com sucesso!');
       } catch (err: any) {
         console.error('❌ [DashboardScreen] Erro ao buscar métricas:', err);
@@ -220,9 +243,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
     console.log('[DashboardScreen] Setting up realtime subscription for authenticated user');
     console.log('[DashboardScreen] Current session:', session);
     console.log('[DashboardScreen] Is authenticated:', isAuthenticated);
-    
+
     let channel: any = null;
-    
+
     const setupRealtime = () => {
       channel = supabase
         .channel('dashboard-realtime-updates')
@@ -301,7 +324,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
       }
     }
   };
-  
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem('isAuthenticated');
@@ -309,27 +332,27 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
     // O estado de autenticação será atualizado automaticamente pelo onAuthStateChange
   };
 
-  const { 
-    total_visits, 
+  const {
+    total_visits,
     total_comments,
-    total_quiz_starts, 
-    total_leads, 
-    total_quiz_complete, 
+    total_quiz_starts,
+    total_leads,
+    total_quiz_complete,
     total_checkout_starts,
     total_abandonments,
-    total_sales, 
+    total_sales,
     total_sales_value,
-    conversion_rates, 
+    conversion_rates,
     funnel_data,
     abandonment_by_step,
     comments_to_visits_conversion
   } = metrics || {};
 
   const quizStartConversionRate = conversion_rates?.visit_to_quiz_start || 0;
-  const leadConversionFromVisits = conversion_rates?.quiz_start_to_lead || 0; 
+  const leadConversionFromVisits = conversion_rates?.quiz_start_to_lead || 0;
   const checkoutConversionFromQuizComplete = conversion_rates?.quiz_complete_to_checkout || 0;
   const abandonmentRateFromVisits = total_visits > 0 ? Math.round((total_abandonments / total_visits) * 100) : 0;
-  const salesConversionFromLeads = total_leads > 0 ? Math.round((total_sales / total_leads) * 100) : 0; 
+  const salesConversionFromLeads = total_leads > 0 ? Math.round((total_sales / total_leads) * 100) : 0;
 
   const formatCurrency = (value: number | null) => {
     if (value === null || value === undefined) return 'R$ 0,00';
@@ -373,21 +396,24 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               {/* Filtro de Produto */}
               <div className="flex items-center space-x-2">
                 <FilterIcon className="w-5 h-5 text-gray-400" />
-                <select 
-                  value={selectedProduct} 
+                <select
+                  value={selectedProduct}
                   onChange={(e) => setSelectedProduct(e.target.value)}
                   className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="all">Todos os Produtos</option>
-                  <option value="tbz">TBZ</option>
+                  {products.map(p => (
+                    <option key={p.id} value={p.slug}>{p.name}</option>
+                  ))}
+                  {products.length === 0 && <option value="tbz">TBZ (Padrão)</option>}
                 </select>
               </div>
-              
+
               {/* Filtro Tipo de Funil */}
               <div className="flex items-center space-x-2">
-                <select 
+                <select
                   id="funnelTypeFilter"
-                  value={selectedTipoDeFunil} 
+                  value={selectedTipoDeFunil}
                   onChange={(e) => setSelectedTipoDeFunil(e.target.value)}
                   className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
@@ -399,9 +425,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
 
               {/* Filtro Fonte de Tráfego */}
               <div className="flex items-center space-x-2">
-                <select 
+                <select
                   id="trafficSourceFilter"
-                  value={selectedFonteDeTrafego} 
+                  value={selectedFonteDeTrafego}
                   onChange={(e) => setSelectedFonteDeTrafego(e.target.value)}
                   className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
@@ -412,11 +438,11 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                   <option value="email">Email</option>
                   <option value="direct">Direto</option>
                   <option value="instagram_dm">Instagram DM</option>
-                  <option value="quiz">Quiz</option> 
+                  <option value="quiz">Quiz</option>
                   {/* Adicione mais opções conforme necessário */}
                 </select>
               </div>
-              
+
               {/* Filtro de Data */}
               <div className="flex items-center space-x-2">
                 <FilterIcon className="w-5 h-5 text-gray-400" />
@@ -427,17 +453,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                   <option value="custom">Data personalizada</option>
                 </select>
                 {dateFilter === 'custom' && (
-                    <input type="date" value={customDate} onChange={(e) => setCustomDate(e.target.value)} className="bg-white border-l border-gray-300 ml-2 pl-2 focus:outline-none"/>
+                  <input type="date" value={customDate} onChange={(e) => setCustomDate(e.target.value)} className="bg-white border-l border-gray-300 ml-2 pl-2 focus:outline-none" />
                 )}
               </div>
               <button onClick={handleClearMetrics} className="text-sm bg-red-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-red-700 transition-colors">Limpar Métricas</button>
               <button onClick={handleLogout} className="text-sm bg-gray-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors">Sair</button>
             </div>
           </div>
-          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-            {['overview', 'abandonment', 'visits', 'buyers', 'crm'].map((tab) => (
-              <button key={tab} onClick={() => setActiveTab(tab as any)} className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === tab ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}>
-                { {overview: 'Visão Geral', abandonment: 'Abandono', visits: 'Visitas', buyers: 'Compradores', crm: 'Leads'}[tab] }
+          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg overflow-x-auto">
+            {['overview', 'abandonment', 'visits', 'buyers', 'crm', 'products'].map((tab) => (
+              <button key={tab} onClick={() => setActiveTab(tab as any)} className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}>
+                {{ overview: 'Visão Geral', abandonment: 'Abandono', visits: 'Visitas', buyers: 'Compradores', crm: 'Leads', products: 'Produtos' }[tab]}
               </button>
             ))}
           </div>
@@ -454,65 +480,65 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
             {activeTab === 'overview' && (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                  <MetricCard title="Total de Comentários" value={total_comments || 0} icon={<ChatBubbleIcon className="w-6 h-6 text-white" />} color="bg-orange-500" />
-                  <MetricCard title="Visitas" value={total_visits || 0} icon={<UsersIcon className="w-6 h-6 text-white" />} color="bg-blue-500" />
-                  <MetricCard 
-                    title="Conversão Comentários" 
-                    value={`${comments_to_visits_conversion || 0}%`} 
-                    icon={<ArrowRightCircleIcon className="w-6 h-6 text-white" />} 
-                    color="bg-orange-600" 
+                  <MetricCard title="Total de Comentários" value={total_comments || 0} icon={<ChatBubbleIcon className="w-6 h-6 text-white" />} color="bg-secondary-light" />
+                  <MetricCard title="Visitas" value={total_visits || 0} icon={<UsersIcon className="w-6 h-6 text-white" />} color="bg-secondary" />
+                  <MetricCard
+                    title="Conversão Comentários"
+                    value={`${comments_to_visits_conversion || 0}%`}
+                    icon={<ArrowRightCircleIcon className="w-6 h-6 text-white" />}
+                    color="bg-secondary-dark"
                   />
-                  <MetricCard title="Quiz Iniciados" value={total_quiz_starts || 0} icon={<PlayIcon className="w-6 h-6 text-white" />} color="bg-green-500" />
-                  <MetricCard 
-                    title="Conversão Quiz Iniciado" 
-                    value={`${quizStartConversionRate}%`} 
-                    icon={<ArrowRightCircleIcon className="w-6 h-6 text-white" />} 
-                    color="bg-green-600" 
+                  <MetricCard title="Quiz Iniciados" value={total_quiz_starts || 0} icon={<PlayIcon className="w-6 h-6 text-white" />} color="bg-accent" />
+                  <MetricCard
+                    title="Conversão Quiz Iniciado"
+                    value={`${quizStartConversionRate}%`}
+                    icon={<ArrowRightCircleIcon className="w-6 h-6 text-white" />}
+                    color="bg-accent-dark"
                   />
-                  
-                  <MetricCard title="Leads" value={total_leads || 0} icon={<UserCheckIcon className="w-6 h-6 text-white" />} color="bg-yellow-500" />
-                  <MetricCard 
-                    title="Conversão Leads" 
-                    value={`${leadConversionFromVisits}%`} 
-                    icon={<ArrowRightCircleIcon className="w-6 h-6 text-white" />} 
-                    color="bg-yellow-600" 
+
+                  <MetricCard title="Leads" value={total_leads || 0} icon={<UserCheckIcon className="w-6 h-6 text-white" />} color="bg-warning" />
+                  <MetricCard
+                    title="Conversão Leads"
+                    value={`${leadConversionFromVisits}%`}
+                    icon={<ArrowRightCircleIcon className="w-6 h-6 text-white" />}
+                    color="bg-warning-dark"
                   />
-                  <MetricCard title="Total Abandonos" value={total_abandonments || 0} icon={<XCircleIcon className="w-6 h-6 text-white" />} color="bg-red-500" />
-                  <MetricCard 
-                    title="Percentual de Abandono" 
-                    value={`${abandonmentRateFromVisits}%`} 
-                    icon={<XCircleIcon className="w-6 h-6 text-white" />} 
-                    color="bg-red-600" 
+                  <MetricCard title="Total Abandonos" value={total_abandonments || 0} icon={<XCircleIcon className="w-6 h-6 text-white" />} color="bg-primary" />
+                  <MetricCard
+                    title="Percentual de Abandono"
+                    value={`${abandonmentRateFromVisits}%`}
+                    icon={<XCircleIcon className="w-6 h-6 text-white" />}
+                    color="bg-primary-dark"
                   />
-                  <MetricCard title="Quiz Completos" value={total_quiz_complete || 0} icon={<CheckCircleIcon className="w-6 h-6 text-white" />} color="bg-purple-500" />
-                  
-                  <MetricCard title="Checkouts" value={total_checkout_starts || 0} icon={<ShoppingCartIcon className="w-6 h-6 text-white" />} color="bg-pink-500" />
-                  <MetricCard 
-                    title="Conversão Checkout" 
-                    value={`${checkoutConversionFromQuizComplete}%`} 
-                    icon={<ArrowRightCircleIcon className="w-6 h-6 text-white" />} 
-                    color="bg-pink-600" 
+                  <MetricCard title="Quiz Completos" value={total_quiz_complete || 0} icon={<CheckCircleIcon className="w-6 h-6 text-white" />} color="bg-accent-light" />
+
+                  <MetricCard title="Checkouts" value={total_checkout_starts || 0} icon={<ShoppingCartIcon className="w-6 h-6 text-white" />} color="bg-secondary" />
+                  <MetricCard
+                    title="Conversão Checkout"
+                    value={`${checkoutConversionFromQuizComplete}%`}
+                    icon={<ArrowRightCircleIcon className="w-6 h-6 text-white" />}
+                    color="bg-secondary-dark"
                   />
-                  <MetricCard 
-                    title="Vendas Totais" 
-                    value={total_sales || 0} 
-                    icon={<DollarSignIcon className="w-6 h-6 text-white" />} 
-                    color="bg-indigo-500" 
+                  <MetricCard
+                    title="Vendas Totais"
+                    value={total_sales || 0}
+                    icon={<DollarSignIcon className="w-6 h-6 text-white" />}
+                    color="bg-success"
                   />
-                  <MetricCard 
-                    title="Valor Total de Vendas" 
-                    value={formatCurrency(total_sales_value)} 
-                    icon={<DollarSignIcon className="w-6 h-6 text-white" />} 
-                    color="bg-indigo-700" 
+                  <MetricCard
+                    title="Valor Total de Vendas"
+                    value={formatCurrency(total_sales_value)}
+                    icon={<DollarSignIcon className="w-6 h-6 text-white" />}
+                    color="bg-secondary-dark"
                   />
-                  <MetricCard 
-                    title="Conversão Vendas (de Leads)" 
-                    value={`${salesConversionFromLeads}%`} 
-                    icon={<ArrowRightCircleIcon className="w-6 h-6 text-white" />} 
-                    color="bg-indigo-600" 
+                  <MetricCard
+                    title="Conversão Vendas (de Leads)"
+                    value={`${salesConversionFromLeads}%`}
+                    icon={<ArrowRightCircleIcon className="w-6 h-6 text-white" />}
+                    color="bg-secondary"
                   />
                 </div>
-                
+
                 {/* Funnel Chart na Visão Geral */}
                 {funnel_data && funnel_data.length > 0 && (
                   <FunnelChart data={funnel_data} />
@@ -520,12 +546,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               </>
             )}
             {activeTab === 'abandonment' && (
-              <AbandonmentScreen 
-                dateFilter={dateFilter} 
-                customDate={customDate} 
-                produto={selectedProduct} 
-                fonteDeTrafego={selectedFonteDeTrafego} 
-                tipoDeFunil={selectedTipoDeFunil} 
+              <AbandonmentScreen
+                dateFilter={dateFilter}
+                customDate={customDate}
+                produto={selectedProduct}
+                fonteDeTrafego={selectedFonteDeTrafego}
+                tipoDeFunil={selectedTipoDeFunil}
               />
             )}
             {activeTab === 'visits' && (
@@ -536,6 +562,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
             )}
             {activeTab === 'crm' && (
               <LeadsScreen dateFilter={dateFilter} customDate={customDate} produto={selectedProduct} fonteDeTrafego={selectedFonteDeTrafego} tipoDeFunil={selectedTipoDeFunil} />
+            )}
+            {activeTab === 'products' && (
+              <ProductsScreen />
             )}
           </>
         )}

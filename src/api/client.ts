@@ -1,4 +1,4 @@
-import { EventType, DashboardMetrics, Visit, Sale, LeadTagAssignment, LeadWithTags, AbandonmentData } from '../types';
+import { EventType, DashboardMetrics, Visit, Sale, LeadTagAssignment, LeadWithTags, AbandonmentData, Product } from '../types';
 import { supabase } from '../integrations/supabase/client';
 import { collectBrowserIdentity, computeFingerprint } from '../utils/browserIdentity';
 import { generateSessionId } from '../utils/validation';
@@ -589,27 +589,27 @@ export const clearAllMetrics = async (): Promise<void> => {
   }
 };
 
-export const getAbandonmentData = async (filters: {
-  dateFilter: string;
-  customDate?: string;
-  produto?: string;
-  fonteDeTrafego?: string;
-  tipoDeFunil?: string;
-}): Promise<AbandonmentData[]> => {
+export const getAbandonmentData = async (
+  dateFilter: string,
+  customDate?: string,
+  produto?: string,
+  fonteDeTrafego?: string,
+  tipoDeFunil?: string
+): Promise<AbandonmentData[]> => {
   const params = new URLSearchParams();
-  params.append('dateFilter', filters.dateFilter);
+  params.append('dateFilter', dateFilter);
 
-  if (filters.customDate) {
-    params.append('customDate', filters.customDate);
+  if (customDate) {
+    params.append('customDate', customDate);
   }
-  if (filters.produto) {
-    params.append('produto', filters.produto);
+  if (produto && produto !== 'all') {
+    params.append('produto', produto);
   }
-  if (filters.fonteDeTrafego) {
-    params.append('fonteDeTrafego', filters.fonteDeTrafego);
+  if (fonteDeTrafego && fonteDeTrafego !== 'all') {
+    params.append('fonteDeTrafego', fonteDeTrafego);
   }
-  if (filters.tipoDeFunil) {
-    params.append('tipoDeFunil', filters.tipoDeFunil);
+  if (tipoDeFunil && tipoDeFunil !== 'all') {
+    params.append('tipoDeFunil', tipoDeFunil);
   }
 
   const response = await fetch(`${SUPABASE_URL}/functions/v1/get-abandonment?${params.toString()}`, {
@@ -625,4 +625,72 @@ export const getAbandonmentData = async (filters: {
   }
 
   return response.json();
+};
+
+// --- Product Management ---
+
+export const getProducts = async (): Promise<Product[]> => {
+  try {
+    const { data, error } = await supabase
+      .schema('tbz')
+      .from('produtos')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Erro ao buscar produtos:', error);
+    throw error;
+  }
+};
+
+export const createProduct = async (name: string, slug: string): Promise<Product> => {
+  try {
+    const { data, error } = await supabase
+      .schema('tbz')
+      .from('produtos')
+      .insert([{ name, slug, active: true }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Erro ao criar produto:', error);
+    throw error;
+  }
+};
+
+export const updateProduct = async (id: string, updates: Partial<Product>): Promise<Product> => {
+  try {
+    const { data, error } = await supabase
+      .schema('tbz')
+      .from('produtos')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Erro ao atualizar produto:', error);
+    throw error;
+  }
+};
+
+export const deleteProduct = async (id: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .schema('tbz')
+      .from('produtos')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Erro ao deletar produto:', error);
+    throw error;
+  }
 };

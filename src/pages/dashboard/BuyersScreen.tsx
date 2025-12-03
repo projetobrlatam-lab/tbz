@@ -56,7 +56,7 @@ const BuyersScreen: React.FC<BuyersScreenProps> = ({ dateFilter, customDate, pro
   const chartData = salesByProductData.map(item => ({
     label: item.produto,
     value: item.count,
-    color: item.produto === 'tbz' ? 'bg-pink-600' : undefined,
+    color: item.produto === 'tbz' ? 'bg-primary' : undefined,
   }));
 
   return (
@@ -76,13 +76,13 @@ const BuyersScreen: React.FC<BuyersScreenProps> = ({ dateFilter, customDate, pro
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
-          <div className="text-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mx-auto"></div><p className="mt-4 text-gray-600">Carregando dados...</p></div>
+          <div className="text-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary mx-auto"></div><p className="mt-4 text-gray-600">Carregando dados...</p></div>
         ) : error ? (
           <div className="text-center py-20 text-red-500">{error}</div>
         ) : (
           <>
             {/* Gráfico de Vendas por Produto */}
-            <BarChart 
+            <BarChart
               title="Distribuição de Vendas por Produto"
               data={chartData}
               totalCount={totalSalesCount}
@@ -96,7 +96,7 @@ const BuyersScreen: React.FC<BuyersScreenProps> = ({ dateFilter, customDate, pro
                   Lista de Compradores ({sales.length})
                 </h2>
               </div>
-              
+
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50">

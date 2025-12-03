@@ -64,12 +64,12 @@ const VisitsScreen: React.FC<VisitsScreenProps> = ({ dateFilter, customDate, pro
   }, [fetchVisitsData]);
 
   const totalVisitsCount = visits.length;
-  
+
   // Mapeando dados para o BarChart, usando region_name
   const chartData = locationData.map(loc => ({
     label: loc.region_name, // Usando o nome da região/país retornado pela Edge Function
     value: loc.count,
-    color: loc.region_name === 'São Paulo' ? 'bg-green-600' : undefined, // Exemplo de destaque
+    color: loc.region_name === 'São Paulo' ? 'bg-accent' : undefined, // Exemplo de destaque
   }));
 
   return (
@@ -89,13 +89,13 @@ const VisitsScreen: React.FC<VisitsScreenProps> = ({ dateFilter, customDate, pro
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
-          <div className="text-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mx-auto"></div><p className="mt-4 text-gray-600">Carregando dados...</p></div>
+          <div className="text-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary mx-auto"></div><p className="mt-4 text-gray-600">Carregando dados...</p></div>
         ) : error ? (
           <div className="text-center py-20 text-red-500">{error}</div>
         ) : (
           <>
             {/* Gráfico de Localização - Título alterado para refletir a mudança */}
-            <BarChart 
+            <BarChart
               title="Distribuição de Visitas por Estado/Região (Top 10)"
               data={chartData}
               totalCount={totalVisitsCount}
@@ -109,7 +109,7 @@ const VisitsScreen: React.FC<VisitsScreenProps> = ({ dateFilter, customDate, pro
                   Lista de Visitas ({visits.length})
                 </h2>
               </div>
-              
+
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50">

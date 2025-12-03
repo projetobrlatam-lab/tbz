@@ -21,22 +21,22 @@ const AuthScreen: React.FC = () => {
             variables: {
               default: {
                 colors: {
-                  brand: '#E0A800',
-                  brandAccent: '#C79500',
-                  inputBackground: '#FFF0F5',
-                  inputBorder: '#EAD9E0',
-                  inputBorderHover: '#E0A800',
-                  inputBorderFocus: '#E0A800',
-                  inputText: '#4C2A3A',
-                  inputPlaceholder: '#4C2A3A80',
-                  defaultButtonBackground: '#E0A800',
-                  defaultButtonBackgroundHover: '#C79500',
-                  defaultButtonText: '#4C2A3A',
-                  anchorTextColor: '#E0A800',
-                  anchorTextHoverColor: '#C79500',
-                  messageText: '#4C2A3A',
-                  messageBackground: '#FDF8FA',
-                  messageBorder: '#EAD9E0',
+                  brand: '#FF5F5D', // Primary
+                  brandAccent: '#E64A48', // Primary Dark
+                  inputBackground: '#FFFFFF',
+                  inputBorder: '#E2E8F0',
+                  inputBorderHover: '#FF5F5D',
+                  inputBorderFocus: '#FF5F5D',
+                  inputText: '#3F7C85', // Text Primary
+                  inputPlaceholder: '#9CA3AF',
+                  defaultButtonBackground: '#FF5F5D',
+                  defaultButtonBackgroundHover: '#E64A48',
+                  defaultButtonText: '#FFFFFF',
+                  anchorTextColor: '#3F7C85', // Secondary
+                  anchorTextHoverColor: '#2A5A60',
+                  messageText: '#3F7C85',
+                  messageBackground: '#F8FAFC',
+                  messageBorder: '#E2E8F0',
                 },
               },
             },

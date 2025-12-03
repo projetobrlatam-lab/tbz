@@ -40,37 +40,37 @@ const Modal: React.FC<{ isOpen: boolean; onClose: () => void; title: string; chi
 
 const getTagColor = (category: string) => {
   switch (category) {
-    case 'Status do Funil': return 'bg-blue-100 text-blue-800';
-    case 'Nível de Urgência': return 'bg-red-100 text-red-800';
-    case 'Interesse': return 'bg-purple-100 text-purple-800';
+    case 'Status do Funil': return 'bg-secondary-light text-secondary-dark';
+    case 'Nível de Urgência': return 'bg-primary-light text-primary-dark';
+    case 'Interesse': return 'bg-accent-light text-accent-dark';
     case 'Outros': return 'bg-gray-100 text-gray-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };
 
 const getBarColor = (tagName: string) => {
-  if (tagName.includes('Crítica')) return 'bg-red-600';
-  if (tagName.includes('Elevada')) return 'bg-orange-500';
-  if (tagName.includes('Atenção')) return 'bg-yellow-500';
-  if (tagName.includes('Capturado')) return 'bg-green-600';
-  if (tagName.includes('Iniciado')) return 'bg-blue-500';
-  if (tagName.includes('Completo')) return 'bg-purple-500';
-  if (tagName.includes('Checkout')) return 'bg-pink-500';
+  if (tagName.includes('Crítica')) return 'bg-primary';
+  if (tagName.includes('Elevada')) return 'bg-warning';
+  if (tagName.includes('Atenção')) return 'bg-warning-dark';
+  if (tagName.includes('Capturado')) return 'bg-accent';
+  if (tagName.includes('Iniciado')) return 'bg-secondary';
+  if (tagName.includes('Completo')) return 'bg-accent-dark';
+  if (tagName.includes('Checkout')) return 'bg-secondary-dark';
   return 'bg-gray-500';
 };
 
 const getUrgencyColor = (urgencyLevel: string | null) => {
   switch (urgencyLevel) {
     case 'EMERGENCIAL':
-    case 'emergency': return 'bg-red-600 text-white';
+    case 'emergency': return 'bg-primary text-white';
     case 'CRÍTICA':
-    case 'critical': return 'bg-red-500 text-white';
+    case 'critical': return 'bg-primary-dark text-white';
     case 'ALTA':
-    case 'high': return 'bg-orange-500 text-white';
+    case 'high': return 'bg-warning-dark text-white';
     case 'MÉDIA':
-    case 'medium': return 'bg-yellow-500 text-white';
+    case 'medium': return 'bg-warning text-white';
     case 'BAIXA':
-    case 'low': return 'bg-green-500 text-white';
+    case 'low': return 'bg-accent text-white';
     default: return 'bg-gray-100 text-gray-800';
   }
 };
@@ -105,13 +105,13 @@ const LeadDetail: React.FC<{ lead: LeadWithTags | null }> = ({ lead }) => {
           <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">E-mail</h4>
           <p className="text-gray-800">{lead.email || 'Não informado'}</p>
         </div>
-       <div>
-         <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Nível de Urgência</h4>
-         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mt-2 ${getUrgencyColor(lead.urgency_level)}`}>
-           {getUrgencyText(lead.urgency_level)}
-         </span>
-       </div>
-       <div>
+        <div>
+          <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Nível de Urgência</h4>
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mt-2 ${getUrgencyColor(lead.urgency_level)}`}>
+            {getUrgencyText(lead.urgency_level)}
+          </span>
+        </div>
+        <div>
           <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Telefone</h4>
           <p className="text-gray-800">{lead.phone || 'Não informado'}</p>
         </div>
@@ -141,19 +141,19 @@ const LeadDetail: React.FC<{ lead: LeadWithTags | null }> = ({ lead }) => {
         </div>
       </div>
       <div>
-         <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Iniciou Checkout</h4>
-         <div className="mt-2">
-           {lead.tags && lead.tags.some(tag => tag.tag_name === 'Checkout Iniciado') ? (
-             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-               Sim
-             </span>
-           ) : (
-             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
-               Não
-             </span>
-           )}
-         </div>
-       </div>
+        <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Iniciou Checkout</h4>
+        <div className="mt-2">
+          {lead.tags && lead.tags.some(tag => tag.tag_name === 'Checkout Iniciado') ? (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+              Sim
+            </span>
+          ) : (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
+              Não
+            </span>
+          )}
+        </div>
+      </div>
       {lead.ai_analysis_data && (
         <div>
           <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Análise de IA ({lead.ai_tag_name || 'N/A'})</h4>
@@ -171,7 +171,7 @@ const LeadsScreen: React.FC<LeadsScreenProps> = ({ dateFilter, customDate, produ
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tagSourceFilter, setTagSourceFilter] = useState<'all' | 'Quiz' | 'Agente IA' | 'Desconhecido'>('all');
-  
+
   const [searchLeadId, setSearchLeadId] = useState('');
   const [searchedLead, setSearchedLead] = useState<LeadWithTags | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -229,7 +229,7 @@ const LeadsScreen: React.FC<LeadsScreenProps> = ({ dateFilter, customDate, produ
   // --- Lógica de Agregação de Tags para o Gráfico ---
   const aggregateTags = useCallback(() => {
     const tagCounts: { [key: string]: number } = {};
-    
+
     leads.forEach(lead => {
       lead.tags.forEach(tag => {
         const tagName = tag.tag_name;
@@ -263,7 +263,7 @@ const LeadsScreen: React.FC<LeadsScreenProps> = ({ dateFilter, customDate, produ
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Gráfico de Tags */}
-        <BarChart 
+        <BarChart
           title="Distribuição de Leads por Tags"
           data={tagChartData}
           totalCount={leads.length}
@@ -286,7 +286,7 @@ const LeadsScreen: React.FC<LeadsScreenProps> = ({ dateFilter, customDate, produ
                 <option value="Desconhecido">Desconhecido</option>
               </select>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <label htmlFor="leadIdSearch" className="text-sm font-medium text-gray-700">Buscar por ID:</label>
               <input
@@ -314,10 +314,10 @@ const LeadsScreen: React.FC<LeadsScreenProps> = ({ dateFilter, customDate, produ
               Lista de Leads ({leads.length})
             </h2>
           </div>
-          
+
           <div className="overflow-x-auto">
-             <table className="w-full">
-               <thead className="bg-gray-50">
+            <table className="w-full">
+              <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Nome / Contato

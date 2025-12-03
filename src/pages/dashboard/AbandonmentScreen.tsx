@@ -56,10 +56,10 @@ const AbandonmentScreen: React.FC<AbandonmentScreenProps> = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       // Chamada real para a API
       const data = await getAbandonmentData(dateFilter, customDate, produto, fonteDeTrafego, tipoDeFunil);
-      
+
       setAbandonmentData(data);
     } catch (err) {
       setError('Erro ao carregar dados de abandono');
@@ -76,7 +76,7 @@ const AbandonmentScreen: React.FC<AbandonmentScreenProps> = ({
   // Função para agregar dados por etapa de abandono para o gráfico
   const aggregateByStep = useCallback(() => {
     const stepCounts: { [key: string]: number } = {};
-    
+
     abandonmentData.forEach(item => {
       const step = item.etapa_abandono;
       stepCounts[step] = (stepCounts[step] || 0) + 1;
@@ -130,7 +130,7 @@ const AbandonmentScreen: React.FC<AbandonmentScreenProps> = ({
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Gráfico de Pizza - Distribuição por Etapa de Abandono */}
-        <PieChart 
+        <PieChart
           title="Distribuição de Abandonos por Etapa"
           data={stepChartData}
           totalCount={abandonmentData.length}
@@ -143,7 +143,7 @@ const AbandonmentScreen: React.FC<AbandonmentScreenProps> = ({
               Lista de Abandonos ({abandonmentData.length})
             </h2>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
@@ -169,7 +169,7 @@ const AbandonmentScreen: React.FC<AbandonmentScreenProps> = ({
                 {loading ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-4 border-blue-600 mx-auto"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-4 border-primary mx-auto"></div>
                       <p className="mt-2 text-gray-500">Carregando dados de abandono...</p>
                     </td>
                   </tr>

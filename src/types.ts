@@ -223,3 +223,11 @@ export interface AbandonmentData {
   tipo_funil: string;
   traffic_id: string;
 }
+
+export interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  active: boolean;
+  created_at: string;
+}
