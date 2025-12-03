@@ -69,7 +69,16 @@ serve(async (req: Request) => {
     let query = supabase
       .schema('tbz')
       .from('visitas')
-      .select('id, session_id, landing_page, referrer, produto, created_at, sessoes!inner(country_code, city, fonte_de_trafego, tipo_de_funil)')
+      .select(`
+        id,
+        created_at,
+        sessoes!inner(
+          ip_address,
+          fonte_de_trafego,
+          tipo_de_funil,
+          produto
+        )
+      `)
       .order('created_at', { ascending: false })
 
     if (produto && produto !== 'all') {
