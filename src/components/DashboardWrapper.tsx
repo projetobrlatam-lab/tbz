@@ -66,11 +66,22 @@ const DashboardWrapper: React.FC = () => {
   }
 
   return (
-    <ErrorBoundary fallback={
-      <div className="flex items-center justify-center min-h-screen bg-red-50 text-red-800 p-4 text-center">
-        <p className="text-lg font-semibold">Ocorreu um erro inesperado ao carregar o Dashboard. Por favor, tente novamente mais tarde.</p>
+    <ErrorBoundary fallback={(error: Error) => (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-red-50 text-red-800 p-4 text-center">
+        <p className="text-lg font-semibold mb-2">Ocorreu um erro ao carregar o Dashboard.</p>
+        <pre className="bg-red-100 p-4 rounded text-sm overflow-auto max-w-full text-left">
+          {error.toString()}
+          <br />
+          {error.stack}
+        </pre>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+        >
+          Tentar Novamente
+        </button>
       </div>
-    }>
+    )}>
       <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Carregando...</div>}>
         {isAuthenticated ? (
           <DashboardScreen totalQuestions={15} />

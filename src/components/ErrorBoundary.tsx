@@ -2,21 +2,22 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
-  fallback: ReactNode;
+  fallback: ReactNode | ((error: Error) => ReactNode);
 }
 
 interface ErrorBoundaryState {
   hasError: boolean;
+  error: Error | null;
 }
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   public state: ErrorBoundaryState = {
-    hasError: false
+    hasError: false,
+    error: null
   };
 
-  public static getDerivedStateFromError(_: Error): ErrorBoundaryState {
-    // Atualiza o estado para que a próxima renderização mostre a UI de fallback.
-    return { hasError: true };
+  public static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -25,6 +26,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   public render() {
     if (this.state.hasError) {
+      if (typeof this.props.fallback === 'function') {
+        return (this.props.fallback as (error: Error) => ReactNode)(this.state.error!);
+      }
       return this.props.fallback;
     }
 
