@@ -383,20 +383,24 @@ export const getSales = async (dateFilter: string, customDate?: string, produto?
 export const getVisitLocations = async (dateFilter: string, customDate?: string, produto?: string, fonteDeTrafego?: string, tipoDeFunil?: string): Promise<Array<{ region_name: string; count: number }>> => {
   try {
     const authToken = await getAuthToken();
-    const params = new URLSearchParams();
-    params.append('date_filter', dateFilter);
-    if (customDate) params.append('custom_date', customDate);
-    if (produto && produto !== 'all') params.append('produto', produto);
-    if (fonteDeTrafego && fonteDeTrafego !== 'all') params.append('fonte_de_trafego', fonteDeTrafego);
-    if (tipoDeFunil && tipoDeFunil !== 'all') params.append('tipo_de_funil', tipoDeFunil);
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/get-visit-locations?${params.toString()}`, {
-      method: 'GET',
+    const rpcParams = {
+      p_date_filter: dateFilter,
+      p_custom_date: customDate || null,
+      p_produto: produto || 'all',
+      p_fonte_de_trafego: fonteDeTrafego || 'all',
+      p_tipo_de_funil: tipoDeFunil || 'all'
+    };
+
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_visit_locations`, {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${authToken}`,
         'apikey': SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+        'Content-Profile': 'tbz',
+      },
+      body: JSON.stringify(rpcParams)
     });
 
     if (!response.ok) {
@@ -405,7 +409,7 @@ export const getVisitLocations = async (dateFilter: string, customDate?: string,
     }
 
     const data = await response.json();
-    return data.locations.map((loc: any) => ({
+    return data.map((loc: any) => ({
       region_name: loc.region_name,
       count: loc.count
     })) || [];
