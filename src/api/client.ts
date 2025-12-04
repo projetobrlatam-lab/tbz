@@ -450,39 +450,51 @@ export const getLeadsWithTags = async (
   fonteDeTrafego?: string,
   tipoDeFunil?: string
 ): Promise<LeadWithTags[]> => {
-  const params = new URLSearchParams();
-  params.append('date_filter', dateFilter);
-  if (customDate) params.append('custom_date', customDate);
-  if (produto && produto !== 'all') params.append('produto', produto);
-  if (tagSourceFilter && tagSourceFilter !== 'all') params.append('tag_source', tagSourceFilter);
-  if (fonteDeTrafego && fonteDeTrafego !== 'all') params.append('fonte_de_trafego', fonteDeTrafego);
-  if (tipoDeFunil && tipoDeFunil !== 'all') params.append('tipo_de_funil', tipoDeFunil);
+  const authToken = await getAuthToken();
 
-  console.log('[API Client] getLeadsWithTags - Parâmetros enviados:', {
-    dateFilter,
-    customDate,
-    produto,
-    tagSourceFilter,
-    fonteDeTrafego,
-    tipoDeFunil
-  });
-  console.log('[API Client] URL construída:', `${SUPABASE_URL}/functions/v1/get-leads-with-tags?${params.toString()}`);
+  const rpcParams = {
+    p_date_filter: dateFilter,
+    p_custom_date: customDate || null,
+    p_produto: produto || 'all',
+    p_tag_source: tagSourceFilter || 'all',
+    p_fonte_de_trafego: fonteDeTrafego || 'all',
+    p_tipo_de_funil: tipoDeFunil || 'all'
+  };
 
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/get-leads-with-tags?${params.toString()}`, {
-    method: 'GET',
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_leads_data`, {
+    method: 'POST',
     headers: {
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer ${authToken}`,
+      'apikey': SUPABASE_ANON_KEY,
       'Content-Type': 'application/json',
+      'Content-Profile': 'tbz',
     },
+    body: JSON.stringify(rpcParams)
   });
 
   if (!response.ok) {
-    throw new Error(`Erro na API: ${response.status} ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('Erro ao buscar leads:', errorText);
+    throw new Error(`Erro HTTP: ${response.status}`);
   }
 
-  const data = await response.json();
-  console.log('[API Client] Resposta da API:', data);
-  return data.leads || [];
+  const leads = await response.json();
+
+  // Mapear retorno do RPC para interface LeadWithTags
+  return leads.map((l: any) => ({
+    id: l.id,
+    name: l.name,
+    email: l.email,
+    phone: l.phone,
+    urgency_level: l.urgency_level,
+    created_at: l.created_at,
+    product_name: l.product_name,
+    traffic_id: l.traffic_id,
+    fonte_de_trafego: l.fonte_de_trafego,
+    tipo_de_funil: l.tipo_de_funil,
+    checkout_initiated: l.checkout_initiated,
+    tags: l.tags || []
+  }));
 };
 
 export const getSingleLead = async (leadId: string): Promise<LeadWithTags | null> => {
