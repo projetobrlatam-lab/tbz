@@ -9,11 +9,11 @@ interface QuizScreenProps {
   trackQuestionView: (questionId: number) => void;
 }
 
-const QuizScreen: React.FC<QuizScreenProps> = ({ 
-  questions, 
-  currentQuestionIndex, 
-  onAnswer, 
-  trackQuestionView 
+const QuizScreen: React.FC<QuizScreenProps> = ({
+  questions,
+  currentQuestionIndex,
+  onAnswer,
+  trackQuestionView
 }) => {
   const currentQuestion = questions[currentQuestionIndex];
   const progressPercentage = progressSteps[currentQuestionIndex];
@@ -76,8 +76,8 @@ const QuizScreen: React.FC<QuizScreenProps> = ({
             </span>
           </div>
           <div className="w-full bg-border rounded-full h-3 overflow-hidden shadow-inner">
-            <div 
-              className="h-3 bg-gradient-to-r from-primary to-primary-dark rounded-full transition-all duration-700 ease-out relative overflow-hidden" 
+            <div
+              className="h-3 bg-gradient-to-r from-primary to-primary-dark rounded-full transition-all duration-700 ease-out relative overflow-hidden"
               style={{ width: `${progressPercentage}%` }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
@@ -90,24 +90,24 @@ const QuizScreen: React.FC<QuizScreenProps> = ({
           {/* Decoração de fundo */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
-          
+
           {/* Emoji da pergunta */}
           {currentQuestion.icon && (
             <div className="text-7xl mb-6 relative z-10">
               {currentQuestion.icon}
             </div>
           )}
-          
+
           {/* Badge da categoria */}
           <div className={`inline-block bg-gradient-to-r ${categoryColor} text-white px-6 py-2 rounded-full text-sm font-bold uppercase tracking-wider mb-6 shadow-elegant`}>
             {currentQuestion.category}
           </div>
-          
+
           {/* Pergunta */}
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-10 text-text-primary leading-tight relative z-10">
             {currentQuestion.text}
           </h2>
-          
+
           {/* Opções de resposta */}
           <div className="space-y-4 relative z-10">
             {currentQuestion.options.map((option, index) => (
@@ -118,7 +118,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({
               >
                 {/* Efeito de hover */}
                 <div className={getButtonClasses(true, false)}></div>
-                
+
                 {/* Número da opção */}
                 <div className="flex items-center space-x-4 relative z-10">
                   <div className={getButtonClasses(false, true)}>
@@ -131,19 +131,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({
           </div>
         </div>
 
-        {/* Indicador de progresso visual */}
-        <div className="mt-8 flex justify-center space-x-2">
-          {questions.map((_, index) => (
-            <div
-              key={index}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                index <= currentQuestionIndex
-                  ? 'bg-gradient-to-r from-primary to-primary-dark shadow-elegant'
-                  : 'bg-border'
-              }`}
-            />
-          ))}
-        </div>
+
       </div>
     </div>
   );
