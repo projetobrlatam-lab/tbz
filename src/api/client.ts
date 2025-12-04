@@ -364,7 +364,8 @@ export const getSales = async (dateFilter: string, customDate?: string, produto?
       headers: {
         'Authorization': `Bearer ${authToken}`,
         'apikey': SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Content-Profile': 'tbz',
       },
       body: JSON.stringify(rpcParams)
     });
@@ -399,7 +400,8 @@ export const getVisitLocations = async (dateFilter: string, customDate?: string,
       headers: {
         'Authorization': `Bearer ${authToken}`,
         'apikey': SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Content-Profile': 'tbz',
       },
       body: JSON.stringify(rpcParams)
     });
@@ -434,7 +436,8 @@ export const getSalesByProduct = async (dateFilter: string, customDate?: string)
       headers: {
         'Authorization': `Bearer ${authToken}`,
         'apikey': SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Content-Profile': 'tbz',
       },
       body: JSON.stringify(rpcParams)
     });
@@ -476,7 +479,8 @@ export const getLeadsWithTags = async (
     headers: {
       'Authorization': `Bearer ${authToken}`,
       'apikey': SUPABASE_ANON_KEY,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Content-Profile': 'tbz',
     },
     body: JSON.stringify(rpcParams)
   });
@@ -564,7 +568,7 @@ export const getAbandonmentData = async (
 
   const rpcParams = {
     p_date_filter: dateFilter,
-    p_custom_date: customDate || null,
+    p_custom_date: customDate || '',
     p_produto: produto || 'all',
     p_fonte_de_trafego: fonteDeTrafego || 'all',
     p_tipo_de_funil: tipoDeFunil || 'all'
