@@ -229,45 +229,36 @@ export const assignTagToLead = async (leadId: string, tagName: string, produto: 
 
 export const getMetrics = async (dateFilter: string = 'all', customDate?: string, produto?: string, fonteDeTrafego?: string, tipoDeFunil?: string): Promise<DashboardMetrics> => {
   try {
-    console.log('[API Client] getMetrics - Parâmetros recebidos:', {
-      dateFilter,
-      customDate,
-      produto,
-      fonteDeTrafego,
-      tipoDeFunil
-    });
+    const authToken = await getAuthToken();
 
-    const params = new URLSearchParams();
-    params.append('date_filter', dateFilter);
-    if (customDate) {
-      params.append('custom_date', customDate);
-    }
-    if (produto && produto !== 'all') {
-      params.append('produto', produto);
-    }
-    if (fonteDeTrafego && fonteDeTrafego !== 'all') {
-      params.append('fonte_de_trafego', fonteDeTrafego);
-    }
-    if (tipoDeFunil && tipoDeFunil !== 'all') {
-      params.append('tipo_de_funil', tipoDeFunil);
-    }
+    const rpcParams = {
+      p_date_filter: dateFilter,
+      p_custom_date: customDate || '',
+      p_produto: produto || 'all',
+      p_fonte_de_trafego: fonteDeTrafego || 'all',
+      p_tipo_de_funil: tipoDeFunil || 'all'
+    };
 
-    console.log('[API Client] getMetrics - URL construída:', `${SUPABASE_URL}/functions/v1/get-metrics?${params.toString()}`);
+    console.log('[API Client] getMetrics - Chamando RPC get_dashboard_metrics:', rpcParams);
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/get-metrics?${params.toString()}`, {
-      method: 'GET',
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_dashboard_metrics`, {
+      method: 'POST',
       headers: {
+        'Authorization': `Bearer ${authToken}`,
         'apikey': SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+        'Content-Profile': 'tbz',
+      },
+      body: JSON.stringify(rpcParams)
     });
 
     if (!response.ok) {
-      throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`Erro HTTP ao buscar métricas: ${response.status} - ${errorText}`);
     }
 
     const metrics = await response.json();
-    console.log('[API Client] getMetrics - Resposta da API:', metrics);
+    console.log('[API Client] getMetrics - Resposta do RPC:', metrics);
 
     return {
       total_visits: metrics.total_visits || 0,
