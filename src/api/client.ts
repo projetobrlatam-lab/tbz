@@ -37,12 +37,43 @@ const safeSessionStorage = {
   },
 };
 
-const getAuthToken = async (): Promise<string> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) {
-    return SUPABASE_ANON_KEY;
+return session.access_token;
+};
+
+// Cache de localização
+let locationCache: { country: string; region: string; city: string } | null = null;
+
+const getLocation = async (): Promise<{ country: string; region: string; city: string } | null> => {
+  if (locationCache) return locationCache;
+
+  // Tentar recuperar do sessionStorage
+  const stored = safeSessionStorage.get('user_location');
+  if (stored) {
+    try {
+      locationCache = JSON.parse(stored);
+      return locationCache;
+    } catch (e) {
+      console.warn('Erro ao parsear localização do storage', e);
+    }
   }
-  return session.access_token;
+
+  try {
+    const response = await fetch('https://ipapi.co/json/');
+    if (!response.ok) throw new Error('Falha ao obter localização');
+    const data = await response.json();
+
+    locationCache = {
+      country: data.country_code,
+      region: data.region,
+      city: data.city
+    };
+
+    safeSessionStorage.set('user_location', JSON.stringify(locationCache));
+    return locationCache;
+  } catch (error) {
+    console.warn('Erro ao obter localização:', error);
+    return null;
+  }
 };
 
 const getSessionId = (): string => {
@@ -117,6 +148,9 @@ export const trackEvent = async (eventType: EventType, payload?: any): Promise<a
     // Utiliza cache de identidade + fingerprint
     const { identity, fingerprint } = await getCachedIdentityAndFingerprint();
 
+    // Obter localização (assíncrono, mas rápido se cacheado)
+    const location = await getLocation();
+
     // Preparar event_data como JSON
     const eventDataObj = {
       ...payload,
@@ -150,7 +184,10 @@ export const trackEvent = async (eventType: EventType, payload?: any): Promise<a
       p_email: payload?.email || null,
       p_name: payload?.name || null,
       p_phone: payload?.phone || null,
-      p_urgency_level: payload?.diagnosticResult?.urgencyLevel || payload?.diagnosisLevel || null
+      p_urgency_level: payload?.diagnosticResult?.urgencyLevel || payload?.diagnosisLevel || null,
+      p_country_code: location?.country || null,
+      p_region_name: location?.region || null,
+      p_city: location?.city || null
     };
 
     console.log(`🚀 [DEBUG client.ts] Enviando payload para RPC track_event_v2:`, rpcPayload);
