@@ -496,12 +496,15 @@ export const getSingleLead = async (leadId: string): Promise<LeadWithTags | null
 
 export const clearAllMetrics = async (): Promise<void> => {
   const authToken = await getAuthToken();
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/clear-metrics`, {
+
+  // Usar RPC para limpar métricas de forma segura e ordenada
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/clear_all_metrics`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${authToken}`,
       'apikey': SUPABASE_ANON_KEY,
+      'Content-Profile': 'tbz', // Importante: aponta para o schema tbz
     },
   });
 
