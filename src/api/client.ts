@@ -301,28 +301,46 @@ export const getVisits = async (dateFilter: string, customDate?: string, produto
   try {
     const authToken = await getAuthToken();
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/get-visits`, {
+    const rpcParams = {
+      p_date_filter: dateFilter,
+      p_custom_date: customDate || null,
+      p_produto: produto || 'all',
+      p_fonte_de_trafego: fonteDeTrafego || 'all',
+      p_tipo_de_funil: tipoDeFunil || 'all'
+    };
+
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_visits_data`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${authToken}`,
         'apikey': SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Content-Profile': 'tbz',
       },
-      body: JSON.stringify({
-        date_filter: dateFilter,
-        custom_date: customDate || undefined,
-        produto: produto && produto !== 'all' ? produto : undefined,
-        fonte_de_trafego: fonteDeTrafego && fonteDeTrafego !== 'all' ? fonteDeTrafego : undefined,
-        tipo_de_funil: tipoDeFunil && tipoDeFunil !== 'all' ? tipoDeFunil : undefined,
-      })
+      body: JSON.stringify(rpcParams)
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Erro ao buscar visitas:', errorText);
       throw new Error(`Erro HTTP: ${response.status}`);
     }
 
-    const json = await response.json();
-    return json?.visits ?? [];
+    const visits = await response.json();
+
+    // Mapear retorno do RPC para interface Visit se necessário (mas os nomes batem)
+    return visits.map((v: any) => ({
+      id: v.id,
+      ip_address: v.ip_address,
+      country_code: v.country_code,
+      country_name: v.country_code === 'BR' ? 'Brasil' : v.country_code, // Simplificação, idealmente viria do banco
+      region_name: v.region_name,
+      city: v.city,
+      produto: v.produto,
+      fonte_de_trafego: v.fonte_de_trafego,
+      tipo_de_funil: v.tipo_de_funil,
+      created_at: v.created_at
+    }));
 
   } catch (error: unknown) {
     console.error("Erro ao carregar visitas:", error);
@@ -521,31 +539,30 @@ export const getAbandonmentData = async (
   fonteDeTrafego?: string,
   tipoDeFunil?: string
 ): Promise<AbandonmentData[]> => {
-  const params = new URLSearchParams();
-  params.append('dateFilter', dateFilter);
+  const authToken = await getAuthToken();
 
-  if (customDate) {
-    params.append('customDate', customDate);
-  }
-  if (produto && produto !== 'all') {
-    params.append('produto', produto);
-  }
-  if (fonteDeTrafego && fonteDeTrafego !== 'all') {
-    params.append('fonteDeTrafego', fonteDeTrafego);
-  }
-  if (tipoDeFunil && tipoDeFunil !== 'all') {
-    params.append('tipoDeFunil', tipoDeFunil);
-  }
+  const rpcParams = {
+    p_date_filter: dateFilter,
+    p_custom_date: customDate || null,
+    p_produto: produto || 'all',
+    p_fonte_de_trafego: fonteDeTrafego || 'all',
+    p_tipo_de_funil: tipoDeFunil || 'all'
+  };
 
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/get-abandonment?${params.toString()}`, {
-    method: 'GET',
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_abandonment_data`, {
+    method: 'POST',
     headers: {
-      'apikey': SUPABASE_ANON_KEY,
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`, // Usa token se disponível, ou anon se não
+      'apikey': SUPABASE_ANON_KEY,
+      'Content-Profile': 'tbz',
     },
+    body: JSON.stringify(rpcParams)
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Erro ao buscar dados de abandono:', errorText);
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
