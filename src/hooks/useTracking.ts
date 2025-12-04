@@ -3,6 +3,9 @@ import { EventType } from '../types';
 import * as api from '../api/client';
 import { useParams } from 'react-router-dom';
 
+// Flag de módulo para garantir que a visita seja registrada apenas uma vez por carregamento de página
+let visitTrackedInPageLoad = false;
+
 export const useTracking = (sessionId: string, produto: string, fonteDeTrafego: string, tipoDeFunil: string, instagramId: string | null) => {
   const finalFonteDeTrafego = fonteDeTrafego; // Usa o valor das UTMs sem fallback
 
@@ -22,8 +25,10 @@ export const useTracking = (sessionId: string, produto: string, fonteDeTrafego: 
   }, [sessionId, produto, tipoDeFunil]); // ✅ CORRIGIDO: Removidas dependências desnecessárias
 
   const trackVisit = useCallback(async () => {
-    // Removemos a verificação do sessionStorage para garantir que a visita seja enviada
-    // O backend (RPC) já faz a desduplicação de 24h por fingerprint
+    // Garante que a visita seja enviada apenas uma vez por carregamento da página (F5 resetará isso)
+    if (visitTrackedInPageLoad) return;
+
+    visitTrackedInPageLoad = true;
     await trackEvent(EventType.VISIT);
   }, [trackEvent]);
 
