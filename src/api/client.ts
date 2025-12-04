@@ -37,7 +37,12 @@ const safeSessionStorage = {
   },
 };
 
-return session.access_token;
+const getAuthToken = async (): Promise<string> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    return SUPABASE_ANON_KEY;
+  }
+  return session.access_token;
 };
 
 // Cache de localização
@@ -643,6 +648,8 @@ export const recordAbandonment = async (
 
     // Tentar pegar fingerprint do cache se existir
     const cachedFingerprint = safeSessionStorage.get('quiz_fingerprint');
+    const { identity } = await getCachedIdentityAndFingerprint();
+    const location = await getLocation();
 
     // Preparar payload para a RPC function (track_abandonment_v2)
     const rpcPayload = {
@@ -655,8 +662,11 @@ export const recordAbandonment = async (
       p_email: leadEmail || null,
       p_traffic_id: instagramId || null,
       p_fingerprint_hash: cachedFingerprint || null,
-      p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
-      p_ip: null // IP será extraído headers se possível, ou ficará null
+      p_user_agent: identity?.userAgent || (typeof navigator !== 'undefined' ? navigator.userAgent : null),
+      p_ip: null, // IP será extraído headers se possível, ou ficará null
+      p_country_code: location?.country || null,
+      p_region_name: location?.region || null,
+      p_city: location?.city || null
     };
 
     // URL para a RPC function
