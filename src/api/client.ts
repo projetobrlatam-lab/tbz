@@ -352,27 +352,29 @@ export const getSales = async (dateFilter: string, customDate?: string, produto?
   try {
     const authToken = await getAuthToken();
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/get-sales`, {
+    const rpcParams = {
+      p_date_filter: dateFilter,
+      p_custom_date: customDate || '',
+      p_produto: produto || 'all',
+      p_fonte_de_trafego: fonteDeTrafego || 'all'
+    };
+
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_sales`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${authToken}`,
         'apikey': SUPABASE_ANON_KEY,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        date_filter: dateFilter,
-        custom_date: customDate || undefined,
-        produto: produto && produto !== 'all' ? produto : undefined,
-        fonte_de_trafego: fonteDeTrafego && fonteDeTrafego !== 'all' ? fonteDeTrafego : undefined,
-      })
+      body: JSON.stringify(rpcParams)
     });
 
     if (!response.ok) {
       throw new Error(`Erro HTTP: ${response.status}`);
     }
 
-    const json = await response.json();
-    return json?.sales ?? [];
+    const sales = await response.json();
+    return sales || [];
 
   } catch (error: unknown) {
     console.error("Erro ao carregar vendas:", error);
@@ -386,7 +388,7 @@ export const getVisitLocations = async (dateFilter: string, customDate?: string,
 
     const rpcParams = {
       p_date_filter: dateFilter,
-      p_custom_date: customDate || null,
+      p_custom_date: customDate || '',
       p_produto: produto || 'all',
       p_fonte_de_trafego: fonteDeTrafego || 'all',
       p_tipo_de_funil: tipoDeFunil || 'all'
@@ -397,8 +399,7 @@ export const getVisitLocations = async (dateFilter: string, customDate?: string,
       headers: {
         'Authorization': `Bearer ${authToken}`,
         'apikey': SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json',
-        'Content-Profile': 'tbz',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(rpcParams)
     });
@@ -422,15 +423,20 @@ export const getVisitLocations = async (dateFilter: string, customDate?: string,
 export const getSalesByProduct = async (dateFilter: string, customDate?: string): Promise<Array<{ produto: string; count: number }>> => {
   try {
     const authToken = await getAuthToken();
-    const params = new URLSearchParams();
-    params.append('date_filter', dateFilter);
-    if (customDate) params.append('custom_date', customDate);
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/get-sales-by-product?${params.toString()}`, {
-      method: 'GET',
+    const rpcParams = {
+      p_date_filter: dateFilter,
+      p_custom_date: customDate || ''
+    };
+
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_sales_by_product`, {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${authToken}`,
-      }
+        'apikey': SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(rpcParams)
     });
 
     if (!response.ok) {
@@ -439,7 +445,7 @@ export const getSalesByProduct = async (dateFilter: string, customDate?: string)
     }
 
     const data = await response.json();
-    return data.sales_by_product || [];
+    return data || [];
   } catch (error) {
     console.error('Erro ao obter vendas por produto:', error);
     throw error;
@@ -458,7 +464,7 @@ export const getLeadsWithTags = async (
 
   const rpcParams = {
     p_date_filter: dateFilter,
-    p_custom_date: customDate || null,
+    p_custom_date: customDate || '',
     p_produto: produto || 'all',
     p_tag_source: tagSourceFilter || 'all',
     p_fonte_de_trafego: fonteDeTrafego || 'all',
@@ -470,8 +476,7 @@ export const getLeadsWithTags = async (
     headers: {
       'Authorization': `Bearer ${authToken}`,
       'apikey': SUPABASE_ANON_KEY,
-      'Content-Type': 'application/json',
-      'Content-Profile': 'tbz',
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify(rpcParams)
   });
