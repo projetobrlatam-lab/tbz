@@ -63,7 +63,12 @@ const getLocation = async (): Promise<{ country: string; region: string; city: s
   }
 
   try {
-    const response = await fetch('https://ipapi.co/json/');
+    // Adicionando timeout de 2 segundos para não bloquear o tracking
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+    const response = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!response.ok) throw new Error('Falha ao obter localização');
     const data = await response.json();
 
