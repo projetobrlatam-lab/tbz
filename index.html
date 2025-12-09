@@ -62,23 +62,16 @@
       }
     }
   </script>
-  <script type="text/javascript">
-      (function (g, u, r, i, d, e, a) {
-        g.DimppleAnalyticsObject = d; if (!(d in g)) {
-          g[d] = function () {
-            g[d].q.push(arguments);
-          }; g[d].q = [];
-        } g[d].l = (new Date()).getTime(); var e = u.createElement(r);
-        e.src = i; e.async = true; var a = u.getElementsByTagName(r)[0]; a.parentNode.insertBefore(e, a)
-      })(window, document, 'script', 'https://api.dimpple.com/public/js/analytics.js?trk=7579.3zUNOQ.6637ead0', 'trk');
-
-    // Inicializar o page view manualmente
-    window.addEventListener('load', function () {
-      if (typeof trk !== 'undefined') {
-        trk('page_view');
-      }
-    });
+  <script>
+    window.pixelId = "69377ae9df518c36d4c68222";
+    var a = document.createElement("script");
+    a.setAttribute("async", "");
+    a.setAttribute("defer", "");
+    a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+    document.head.appendChild(a);
   </script>
+  <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids
+    async defer></script>
   <link rel="stylesheet" href="./index.css">
 </head>
 

@@ -52,33 +52,6 @@ const App: React.FC = () => {
     return window.location.pathname === '/';
   };
 
-  // Inicializar Dimpple Analytics
-  useEffect(() => {
-    // Não disparar Dimpple Analytics se estivermos no dashboard
-    if (isDashboardRoute()) {
-      console.log('Dimpple Analytics: Não disparando no dashboard para evitar interferência nos dados');
-      return;
-    }
-
-    // Aguardar um pouco para garantir que o script foi carregado
-    const initDimpple = () => {
-      if (typeof window !== 'undefined' && (window as any).trk) {
-        try {
-          (window as any).trk('page_view');
-          console.log('Dimpple Analytics: page_view disparado');
-        } catch (error) {
-          console.error('Erro ao disparar page_view do Dimpple:', error);
-        }
-      } else {
-        // Tentar novamente após um delay
-        setTimeout(initDimpple, 1000);
-      }
-    };
-
-    // Inicializar após um pequeno delay
-    setTimeout(initDimpple, 500);
-  }, []);
-
   const getCurrentStep = useCallback(() => {
     switch (view) {
       case QuizState.WELCOME: return 'pagina_inicial';
