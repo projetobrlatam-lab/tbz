@@ -106,7 +106,7 @@ interface ResultScreenProps {
 }
 
 const ResultScreen: React.FC<ResultScreenProps> = ({ diagnosisLevel, diagnosticResult, onOfferClick }) => {
-  const [hotmartUrl, setHotmartUrl] = useState('https://pay.hotmart.com/S101001652G?off=mesaihyj&checkoutMode=10');
+  const [hotmartUrl, setHotmartUrl] = useState('https://payment.ticto.app/O1A7E5B31');
   const selectedDiagnosis = diagnoses[diagnosisLevel] || diagnoses[0];
 
   // Função para mapear o nível de urgência para o texto de diagnóstico
@@ -156,12 +156,11 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ diagnosisLevel, diagnosticR
     const params = new URLSearchParams(window.location.search);
     const name = params.get('name');
     const email = params.get('email');
-    const phoneac = params.get('phoneac');
     const phonenumber = params.get('phonenumber');
 
-    if (name && email && phoneac && phonenumber) {
-      const baseUrl = 'https://pay.hotmart.com/S101001652G?off=mesaihyj&checkoutMode=10';
-      const populatedUrl = `${baseUrl}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&phoneac=${encodeURIComponent(phoneac)}&phonenumber=${encodeURIComponent(phonenumber)}`;
+    if (name && email && phonenumber) {
+      const baseUrl = 'https://payment.ticto.app/O1A7E5B31';
+      const populatedUrl = `${baseUrl}?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&phonenumber=${encodeURIComponent(phonenumber)}`;
       setHotmartUrl(populatedUrl);
     }
   }, []);
@@ -184,14 +183,14 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ diagnosisLevel, diagnosticR
         {/* Diagnóstico Principal */}
         <div className="w-full text-center bg-background rounded-3xl shadow-elegant-xl p-8 md:p-10 mb-12 border-2 border-secondary relative overflow-hidden">
           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-secondary/10 to-transparent rounded-full -translate-y-20 translate-x-20"></div>
-          
+
           <div className="relative z-10">
             <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-secondary to-secondary-dark text-white px-6 py-2 rounded-full text-sm font-bold uppercase tracking-wider mb-6">
               <SparkleIcon className="w-4 h-4" />
               <span>Resultado do Diagnóstico</span>
               <SparkleIcon className="w-4 h-4" />
             </div>
-            
+
             <h1 className="text-3xl sm:text-4xl font-black mb-4">
               <span className={`bg-gradient-to-r ${diagnosticResult ? getUrgencyColor(diagnosticResult.urgencyLevel) : 'from-secondary to-secondary-dark'} bg-clip-text text-transparent`}>
                 {displayDiagnosis.headline}
@@ -226,7 +225,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ diagnosisLevel, diagnosticR
               </ul>
             </div>
           </div>
-          
+
           <div className="bg-background rounded-2xl p-8 text-center border-2 border-accent shadow-elegant relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-accent/10 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
             <div className="relative z-10">
@@ -255,7 +254,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ diagnosisLevel, diagnosticR
           <p className="text-xl md:text-2xl text-text-secondary mb-8 leading-relaxed">
             "Se você tem filhos e chegou até aqui, preciso te dar uma notícia dolorosa mas necessária: suas brigas não estão só destruindo seu casamento. <strong className="text-secondary font-semibold">Estão destruindo seus filhos.</strong> E você tem muito pouco tempo para reverter isso."
           </p>
-          
+
           <BarChart traumaLevel={displayDiagnosis.traumaLevel} harmonyPotential={95} />
 
           <p className="text-lg md:text-xl text-text-secondary mb-8 leading-relaxed">
@@ -272,7 +271,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ diagnosisLevel, diagnosticR
         {/* Página de Vendas */}
         <div className="bg-background rounded-3xl shadow-elegant-xl p-8 md:p-12 border border-border relative overflow-hidden">
           <div className="absolute top-0 right-0 w-60 h-60 bg-gradient-to-br from-primary/5 to-transparent rounded-full -translate-y-30 translate-x-30"></div>
-          
+
           <div className="relative z-10">
             <div className="text-center mb-10">
               <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-warning to-warning-dark text-white px-6 py-2 rounded-full text-sm font-bold uppercase tracking-wider mb-4">
@@ -286,18 +285,18 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ diagnosisLevel, diagnosticR
               <h2 className="text-2xl sm:text-3xl font-bold text-text-primary mb-4">Seus Filhos Não Podem Esperar Mais</h2>
               <p className="text-xl text-accent font-semibold">Seu Plano de Resgate Familiar Está Pronto</p>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-surface p-8 rounded-2xl mb-10 border border-border">
               {/* Produto */}
               <div className="flex flex-col items-center justify-center bg-background p-8 rounded-2xl text-center h-full shadow-elegant">
-                <BookIcon />
+                <img src="/product-book.png" alt="Protocolo de Resgate Familiar" className="w-48 h-auto mb-4 drop-shadow-xl" />
                 <h3 className="text-2xl font-bold text-text-primary mb-2">Protocolo de Resgate Familiar</h3>
                 <p className="text-text-secondary mb-4">O passo a passo de 7 dias para restaurar a paz e proteger seus filhos.</p>
                 <div className="bg-gradient-to-r from-secondary to-secondary-dark text-white font-bold py-3 px-6 rounded-full">
                   VERSÃO EMERGÊNCIA
                 </div>
               </div>
-              
+
               {/* Bônus */}
               <div>
                 <h4 className="font-bold text-xl mb-6 text-text-primary">E você ainda recebe estes bônus de resgate:</h4>
@@ -318,17 +317,17 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ diagnosisLevel, diagnosticR
               <p className="text-6xl font-black text-accent mb-2">R$ 29,90</p>
               <p className="text-text-secondary">Menos que uma consulta de psicólogo infantil que você vai precisar se não agir AGORA.</p>
             </div>
-          
+
             {/* Garantia */}
             <div className="text-center bg-surface p-8 rounded-2xl mb-10 flex flex-col items-center border border-border">
-              <ShieldIcon className="w-16 h-16 text-accent mb-4"/>
+              <ShieldIcon className="w-16 h-16 text-accent mb-4" />
               <h3 className="font-bold text-xl text-accent mb-2">Garantia de Proteção Familiar - 7 dias</h3>
-              <p className="text-text-secondary max-w-xl">Se em 7 dias você não vir uma mudança radical nas brigas, devolvemos tudo. Mas pense: você prefere recuperar R$ 29,90 ou recuperar o futuro dos seus filhos?</p>
+              <p className="text-text-secondary max-w-xl">Se em 7 dias você não vir uma mudança radical nas brigas, devolvemos tudo. Mas pense: você prefere recuperar R$ 47,00 ou recuperar o futuro dos seus filhos?</p>
             </div>
 
             {/* Botão Principal */}
-            <button 
-              onClick={handleButtonClick} 
+            <button
+              onClick={handleButtonClick}
               className="chk_29 group w-full max-w-2xl mx-auto bg-gradient-to-r from-accent to-accent-dark text-white font-bold text-2xl py-6 px-8 rounded-2xl shadow-elegant-lg hover:shadow-elegant-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 mb-12 relative overflow-hidden flex items-center justify-center"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-accent-dark to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -343,31 +342,31 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ diagnosisLevel, diagnosticR
             <div className="pt-8 border-t border-border">
               <h3 className="text-2xl font-bold text-center text-text-primary mb-8">Ainda em dúvida? Deixe-me ser brutalmente honesta...</h3>
               <p className="text-center text-lg text-text-secondary mb-10 max-w-4xl mx-auto leading-relaxed">Neste exato momento, você está em uma encruzilhada. Existem apenas dois caminhos a seguir, e a decisão que você tomar agora definirá o futuro emocional dos seus filhos.</p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                 {/* Caminho 1 */}
                 <div className="bg-red-50 p-8 rounded-2xl border-2 border-red-200 shadow-elegant">
                   <div className="flex items-center mb-6">
-                    <CrossIcon className="w-8 h-8 text-red-500 mr-4"/>
+                    <CrossIcon className="w-8 h-8 text-red-500 mr-4" />
                     <h4 className="text-xl font-bold text-red-600">Caminho 1: Você fecha esta página</h4>
                   </div>
                   <p className="text-text-secondary leading-relaxed">Amanhã, a tensão continua. Outra briga acontece. Seus filhos se encolhem no canto de novo. O silêncio pesado volta. Daqui a 5 anos, eles são adolescentes distantes. Daqui a 20, eles estão em relacionamentos tóxicos, porque foi o que aprenderam. E a culpa, silenciosamente, te consumirá todos os dias.</p>
                 </div>
-                
+
                 {/* Caminho 2 */}
                 <div className="bg-green-50 p-8 rounded-2xl border-2 border-accent shadow-elegant">
                   <div className="flex items-center mb-6">
-                    <CheckIcon className="w-8 h-8 text-accent mr-4"/>
+                    <CheckIcon className="w-8 h-8 text-accent mr-4" />
                     <h4 className="text-xl font-bold text-accent">Caminho 2: Você toma a decisão</h4>
                   </div>
                   <p className="text-text-secondary leading-relaxed">Amanhã, a tensão para. Outra briga acontece. Seus filhos se encolhem no canto de novo. O silêncio pesado volta. Daqui a 5 anos, eles são adolescentes distantes. Daqui a 20, eles estão em relacionamentos tóxicos, porque foi o que aprenderam. E a culpa, silenciosamente, te consumirá todos os dias.</p>
                 </div>
               </div>
-              
+
               <p className="text-center text-lg font-bold text-text-primary mb-8">A escolha é sua. O futuro deles também.</p>
-              
-              <button 
-                onClick={handleButtonClick} 
+
+              <button
+                onClick={handleButtonClick}
                 className="chk_29 group w-full max-w-2xl mx-auto bg-gradient-to-r from-accent to-accent-dark text-white font-bold text-2xl py-6 px-8 rounded-2xl shadow-elegant-lg hover:shadow-elegant-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 relative overflow-hidden flex items-center justify-center"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-accent-dark to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

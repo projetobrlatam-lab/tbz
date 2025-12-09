@@ -42,9 +42,9 @@ const App: React.FC = () => {
   const [currentLeadId, setCurrentLeadId] = useState<string | null>(null);
   const [currentLeadEmail, setCurrentLeadEmail] = useState<string | null>(null);
   const [isLeadIdReady, setIsLeadIdReady] = useState(false);
-  
-  const { sessionId, produto, fonteDeTrafego, tipoDeFunil, instagramId, isSessionReady } = useSession(); 
-  const tracking = useTracking(sessionId, produto, fonteDeTrafego, tipoDeFunil, instagramId); 
+
+  const { sessionId, produto, fonteDeTrafego, tipoDeFunil, instagramId, isSessionReady } = useSession();
+  const tracking = useTracking(sessionId, produto, fonteDeTrafego, tipoDeFunil, instagramId);
 
   // Função para detectar se estamos no dashboard (rota raiz)
   const isDashboardRoute = () => {
@@ -113,51 +113,51 @@ const App: React.FC = () => {
   useEffect(() => {
     // Abandono funciona desde WELCOME até pergunta 15 do QUIZ
     // NÃO registra abandono em LEAD_CAPTURE nem RESULTS (página de vendas)
-    const shouldTrackAbandonment = 
-      view === QuizState.WELCOME || 
+    const shouldTrackAbandonment =
+      view === QuizState.WELCOME ||
       (view === QuizState.QUIZ && currentQuestionIndex <= 14); // pergunta 15 = index 14
-    
+
     if (!shouldTrackAbandonment) return;
-    
+
     const fireAbandonment = () => {
       // Verifica novamente o contexto no momento do disparo
-      const currentShouldTrack = 
-        view === QuizState.WELCOME || 
+      const currentShouldTrack =
+        view === QuizState.WELCOME ||
         (view === QuizState.QUIZ && currentQuestionIndex <= 14);
-      
+
       if (!currentShouldTrack) return;
-    
+
       // Bloqueios: já enviado ou ações que não são abandono
       if (sessionStorage.getItem('abandonment_sent') === 'true') return;
       if (sessionStorage.getItem('offer_click_tracked') === 'true') return;
       if (sessionStorage.getItem('quiz_complete_tracked') === 'true') return;
       if (sessionStorage.getItem('lead_submit_tracked') === 'true') return;
-    
+
       // Supressão: clique recente no checkout (navegação legítima)
       const recentOfferClickTs = Number(sessionStorage.getItem('recent_offer_click_ts') || '0');
       if (recentOfferClickTs && Date.now() - recentOfferClickTs < 5000) return;
-    
+
       // NOVA VERIFICAÇÃO: Não disparar se a página foi carregada há menos de 3 segundos
       const pageLoadTime = Number(sessionStorage.getItem('page_load_time') || '0');
       if (pageLoadTime && Date.now() - pageLoadTime < 3000) {
         console.log('🚫 [DEBUG] Abandono bloqueado - página carregada há menos de 3 segundos');
         return;
       }
-    
+
       // Marca e envia
       sessionStorage.setItem('abandonment_sent', 'true');
       console.log('🔥 [DEBUG] Disparando abandono:', getCurrentStep());
       tracking.trackAbandonment(getCurrentStep(), 'fechamento_janela', currentLeadEmail || undefined);
     };
-    
+
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       console.log('🔥 [DEBUG] beforeunload disparado, view:', view, 'questionIndex:', currentQuestionIndex);
       fireAbandonment();
     };
-    
+
     // Somente beforeunload — não usa pagehide/visibilitychange para evitar falsos positivos
     window.addEventListener('beforeunload', onBeforeUnload);
-    
+
     return () => {
       window.removeEventListener('beforeunload', onBeforeUnload);
     };
@@ -167,7 +167,7 @@ const App: React.FC = () => {
   useEffect(() => {
     // Marca o timestamp de carregamento da página para proteção contra abandono prematuro
     sessionStorage.setItem('page_load_time', Date.now().toString());
-    
+
     void (async () => {
       try {
         await tracking.trackVisit();
@@ -201,20 +201,20 @@ const App: React.FC = () => {
 
     // Encontrar o índice da opção selecionada
     const selectedOptionIndex = currentQuestion.options.findIndex(option => option === answer);
-    
+
     if (selectedOptionIndex !== -1) {
       // Armazenar a resposta
       const newAnswer: QuizAnswer = {
         questionId: currentQuestion.id,
         selectedOption: selectedOptionIndex
       };
-      
+
       setQuizAnswers(prev => {
         // Remove resposta anterior para a mesma pergunta (se existir) e adiciona a nova
         const filtered = prev.filter(a => a.questionId !== currentQuestion.id);
         return [...filtered, newAnswer];
       });
-      
+
       console.log(`🔥 [DEBUG App.tsx] Resposta armazenada: questionId=${currentQuestion.id}, selectedOption=${selectedOptionIndex}`);
     }
 
@@ -243,14 +243,14 @@ const App: React.FC = () => {
 
     // Iniciar análise imediatamente para evitar qualquer percepção de atraso
     setIsAnalyzing(true);
-    
+
     // Calcular diagnóstico real baseado nas respostas
     console.log(`🎯 [DEBUG App.tsx] Calculando diagnóstico com ${quizAnswers.length} respostas:`, quizAnswers);
     const diagnostic = analyzeDiagnostic(quizAnswers);
     console.log(`🎯 [DEBUG App.tsx] Resultado do diagnóstico:`, diagnostic);
-    
+
     setDiagnosticResult(diagnostic);
-    
+
     // Mapear urgência para diagnosisLevel para compatibilidade
     const levelMap = { 'high': 0, 'critical': 1, 'emergency': 2 };
     const calculatedLevel = levelMap[diagnostic.urgencyLevel] || 0;
@@ -262,10 +262,10 @@ const App: React.FC = () => {
         console.log(`🎯 [DEBUG App.tsx] Dados sanitizados para lead_submit:`, sanitizedData);
         console.log(`🎯 [DEBUG App.tsx] Diagnosis level:`, diagnosisLevel);
         console.log(`🎯 [DEBUG App.tsx] SessionId atual:`, sessionId);
-        
+
         const response = await tracking.trackLeadSubmit(sanitizedData, calculatedLevel, diagnostic);
         console.log(`🎯 [DEBUG App.tsx] Resposta do trackLeadSubmit:`, response);
-        
+
         if (response && typeof response === 'object' && 'lead_id' in response) {
           console.log(`✅ [DEBUG App.tsx] Lead ID recebido:`, response.lead_id);
           console.log(`🎯 [DEBUG App.tsx] Definindo currentLeadId para:`, response.lead_id);
@@ -281,7 +281,7 @@ const App: React.FC = () => {
           setIsLeadIdReady(true);
         }
         setCurrentLeadEmail(sanitizedData.email);
-        
+
         // Log final do currentLeadId definido
         setTimeout(() => {
           console.log(`🎯 [DEBUG App.tsx] CurrentLeadId final definido:`, response?.lead_id || sessionId);
@@ -296,27 +296,12 @@ const App: React.FC = () => {
         setIsLeadIdReady(true);
       }
     })();
-    
-    const cleanPhone = sanitizedData.phone.replace(/\D/g, '');
-    const params = new URLSearchParams({
-      name: sanitizedData.name,
-      email: sanitizedData.email,
-      phoneac: cleanPhone.substring(0, 2),
-      phonenumber: cleanPhone.substring(2),
-      ...(instagramId && { utm_medium: instagramId }),
-      ...(fonteDeTrafego && { utm_source: fonteDeTrafego })
-    });
 
-    // Gera a query string e decodifica para evitar %40 no email
-    const decodedQuery = decodeURIComponent(params.toString());
-
-    window.history.pushState({}, '', `?${decodedQuery}`);
-    
     setTimeout(() => {
       setIsAnalyzing(false);
       setView(QuizState.RESULTS);
     }, 2500);
-  }, [tracking, sessionId, diagnosisLevel, instagramId, fonteDeTrafego]); 
+  }, [tracking, sessionId, diagnosisLevel, instagramId, fonteDeTrafego]);
 
   const handleOfferClick = useCallback(async () => {
     console.log(`🛒 [DEBUG CHECKOUT] ==================== INÍCIO DO CHECKOUT ====================`);
@@ -328,7 +313,7 @@ const App: React.FC = () => {
     console.log(`🛒 [DEBUG CHECKOUT] CurrentLeadId is undefined:`, currentLeadId === undefined);
     console.log(`🛒 [DEBUG CHECKOUT] CurrentLeadEmail:`, currentLeadEmail);
     console.log(`🛒 [DEBUG CHECKOUT] SessionId:`, sessionId);
-    
+
     // Aguardar o leadId estar pronto se ainda não estiver
     if (!isLeadIdReady) {
       console.log(`⏳ [DEBUG CHECKOUT] Aguardando leadId estar pronto...`);
@@ -341,18 +326,18 @@ const App: React.FC = () => {
       console.log(`🔄 [DEBUG CHECKOUT] Após aguardar - IsLeadIdReady:`, isLeadIdReady);
       console.log(`🔄 [DEBUG CHECKOUT] Após aguardar - CurrentLeadId:`, currentLeadId);
     }
-    
+
     const idToTrack = currentLeadId || sessionId;
     console.log("🛒 [DEBUG CHECKOUT] Iniciando handleOfferClick");
     console.log("🛒 [DEBUG CHECKOUT] currentLeadId:", currentLeadId);
     console.log("🛒 [DEBUG CHECKOUT] sessionId:", sessionId);
     console.log("🛒 [DEBUG CHECKOUT] idToTrack:", idToTrack);
-    
+
     try {
       console.log("🛒 [DEBUG CHECKOUT] Chamando tracking.trackOfferClick...");
       await tracking.trackOfferClick(idToTrack);
       console.log("✅ [DEBUG CHECKOUT] tracking.trackOfferClick concluído");
-      
+
       // Atualizar o campo iniciar_checkout para true no lead
       if (currentLeadId) {
         console.log("🛒 [DEBUG CHECKOUT] Atualizando campo iniciar_checkout para currentLeadId:", currentLeadId);
@@ -362,7 +347,7 @@ const App: React.FC = () => {
             .update({ iniciar_checkout: true })
             .eq('id', currentLeadId)
             .select();
-          
+
           if (error) {
             console.error("❌ [DEBUG CHECKOUT] Erro ao atualizar iniciar_checkout:", error);
           } else {
@@ -373,32 +358,32 @@ const App: React.FC = () => {
           console.error("❌ [DEBUG CHECKOUT] Erro ao atualizar lead:", updateError);
         }
       } else {
-          console.warn("⚠️ [DEBUG CHECKOUT] currentLeadId é null - não é possível atualizar o lead");
-          console.log("💡 [DEBUG CHECKOUT] Certifique-se de que o lead foi criado corretamente no lead_submit");
-        }
+        console.warn("⚠️ [DEBUG CHECKOUT] currentLeadId é null - não é possível atualizar o lead");
+        console.log("💡 [DEBUG CHECKOUT] Certifique-se de que o lead foi criado corretamente no lead_submit");
+      }
     } catch (error) {
       console.error("❌ [DEBUG CHECKOUT] Erro ao registrar clique na oferta:", error);
     }
     // Marca timestamp do clique para suprimir abandono ao navegar para checkout
     sessionStorage.setItem('recent_offer_click_ts', Date.now().toString());
-    
+
     const currentParams = new URLSearchParams(window.location.search);
-    
+
     // Parâmetros permitidos no checkout
     const allowedKeys = ['name', 'email', 'phoneac', 'phonenumber', 'utm_medium', 'utm_source'];
-    
+
     const hotmartParams = new URLSearchParams();
     allowedKeys.forEach((key) => {
-    const value = currentParams.get(key);
-    if (value) {
-    hotmartParams.append(key, value);
-    }
+      const value = currentParams.get(key);
+      if (value) {
+        hotmartParams.append(key, value);
+      }
     });
-    
-    const baseUrl = 'https://pay.hotmart.com/S101001652G?off=mesaihyj&checkoutMode=10';
+
+    const baseUrl = 'https://payment.ticto.app/O1A7E5B31';
     const queryString = hotmartParams.toString();
     const hotmartUrl = queryString ? `${baseUrl}&${queryString}` : baseUrl;
-    
+
     window.location.href = hotmartUrl;
   }, [tracking, currentLeadId, sessionId, isLeadIdReady]);
 
@@ -413,7 +398,7 @@ const App: React.FC = () => {
   switch (view) {
     case QuizState.WELCOME:
       return (
-        <WelcomeScreen 
+        <WelcomeScreen
           onStart={handleQuizStart}
         />
       );
@@ -423,7 +408,7 @@ const App: React.FC = () => {
           questions={quizQuestions}
           currentQuestionIndex={currentQuestionIndex}
           onAnswer={handleAnswer}
-          trackQuestionView={() => {}}
+          trackQuestionView={() => { }}
         />
       );
     case QuizState.LEAD_CAPTURE:
@@ -435,16 +420,16 @@ const App: React.FC = () => {
     case QuizState.RESULTS:
       return (
         <React.Suspense fallback={<LoadingSpinner />}>
-          <ResultScreen 
-            diagnosisLevel={diagnosisLevel} 
+          <ResultScreen
+            diagnosisLevel={diagnosisLevel}
             diagnosticResult={diagnosticResult}
-            onOfferClick={handleOfferClick} 
+            onOfferClick={handleOfferClick}
           />
         </React.Suspense>
       );
     default:
       return (
-        <WelcomeScreen 
+        <WelcomeScreen
           onStart={() => setView(QuizState.QUIZ)}
         />
       );
