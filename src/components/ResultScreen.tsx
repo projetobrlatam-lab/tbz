@@ -314,7 +314,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ diagnosisLevel, diagnosticR
             {/* Preço */}
             <div className="text-center bg-gradient-to-r from-primary/10 to-secondary/10 p-8 rounded-2xl border-2 border-primary/20 mb-10">
               <p className="text-lg text-text-secondary mb-2">Preço de Emergência:</p>
-              <p className="text-6xl font-black text-accent mb-2">R$ 29,90</p>
+              <p className="text-6xl font-black text-accent mb-2">R$ 47,00</p>
               <p className="text-text-secondary">Menos que uma consulta de psicólogo infantil que você vai precisar se não agir AGORA.</p>
             </div>
 

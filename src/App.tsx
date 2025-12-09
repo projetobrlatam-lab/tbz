@@ -382,7 +382,7 @@ const App: React.FC = () => {
 
     const baseUrl = 'https://payment.ticto.app/O1A7E5B31';
     const queryString = hotmartParams.toString();
-    const hotmartUrl = queryString ? `${baseUrl}&${queryString}` : baseUrl;
+    const hotmartUrl = queryString ? `${baseUrl}?${queryString}` : baseUrl;
 
     window.location.href = hotmartUrl;
   }, [tracking, currentLeadId, sessionId, isLeadIdReady]);
