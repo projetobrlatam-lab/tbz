@@ -241,6 +241,20 @@ const App: React.FC = () => {
       throw new Error('Por favor, preencha todos os campos corretamente.');
     }
 
+    // Atualizar URL com os parâmetros do lead
+    const cleanPhone = sanitizedData.phone.replace(/\D/g, '');
+    const params = new URLSearchParams(window.location.search);
+    params.set('name', sanitizedData.name);
+    params.set('email', sanitizedData.email);
+    params.set('phonenumber', cleanPhone);
+
+    // Manter UTMs se existirem
+    if (instagramId) params.set('utm_medium', instagramId);
+    if (fonteDeTrafego) params.set('utm_source', fonteDeTrafego);
+
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({ path: newUrl }, '', newUrl);
+
     // Iniciar análise imediatamente para evitar qualquer percepção de atraso
     setIsAnalyzing(true);
 
