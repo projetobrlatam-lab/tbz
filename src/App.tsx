@@ -43,6 +43,18 @@ const App: React.FC = () => {
   const [currentLeadEmail, setCurrentLeadEmail] = useState<string | null>(null);
   const [isLeadIdReady, setIsLeadIdReady] = useState(false);
 
+  // Refs to access latest state in async callbacks
+  const currentLeadIdRef = React.useRef<string | null>(null);
+  const isLeadIdReadyRef = React.useRef(false);
+
+  useEffect(() => {
+    currentLeadIdRef.current = currentLeadId;
+  }, [currentLeadId]);
+
+  useEffect(() => {
+    isLeadIdReadyRef.current = isLeadIdReady;
+  }, [isLeadIdReady]);
+
   const { sessionId, produto, fonteDeTrafego, tipoDeFunil, instagramId, isSessionReady } = useSession();
   const tracking = useTracking(sessionId, produto, fonteDeTrafego, tipoDeFunil, instagramId);
 
@@ -256,16 +268,21 @@ const App: React.FC = () => {
         if (response && typeof response === 'object' && 'lead_id' in response) {
           console.log(`✅ [DEBUG App.tsx] Lead ID recebido:`, response.lead_id);
           console.log(`🎯 [DEBUG App.tsx] Definindo currentLeadId para:`, response.lead_id);
-          setCurrentLeadId((response as { lead_id: string }).lead_id);
+          const leadId = (response as { lead_id: string }).lead_id;
+          setCurrentLeadId(leadId);
+          currentLeadIdRef.current = leadId; // Atualização imediata do ref
           console.log(`🎯 [DEBUG App.tsx] setCurrentLeadId chamado com:`, response.lead_id);
           setIsLeadIdReady(true);
+          isLeadIdReadyRef.current = true;
         } else {
           console.warn("❌ [DEBUG App.tsx] trackLeadSubmit did not return lead_id in expected format. Falling back to sessionId.");
           console.log(`🔄 [DEBUG App.tsx] Usando sessionId como fallback:`, sessionId);
           console.log(`🎯 [DEBUG App.tsx] Definindo currentLeadId para sessionId:`, sessionId);
           setCurrentLeadId(sessionId);
+          currentLeadIdRef.current = sessionId;
           console.log(`🎯 [DEBUG App.tsx] setCurrentLeadId chamado com sessionId:`, sessionId);
           setIsLeadIdReady(true);
+          isLeadIdReadyRef.current = true;
         }
         setCurrentLeadEmail(sanitizedData.email);
 
@@ -278,9 +295,11 @@ const App: React.FC = () => {
         console.log(`🔄 [DEBUG App.tsx] Usando sessionId como fallback por erro:`, sessionId);
         console.log(`🎯 [DEBUG App.tsx] Definindo currentLeadId para sessionId por erro:`, sessionId);
         setCurrentLeadId(sessionId);
+        currentLeadIdRef.current = sessionId;
         console.log(`🎯 [DEBUG App.tsx] setCurrentLeadId chamado com sessionId por erro:`, sessionId);
         setCurrentLeadEmail(sanitizedData.email);
         setIsLeadIdReady(true);
+        isLeadIdReadyRef.current = true;
       }
     })();
 
@@ -293,31 +312,32 @@ const App: React.FC = () => {
   const handleOfferClick = useCallback(async () => {
     console.log(`🛒 [DEBUG CHECKOUT] ==================== INÍCIO DO CHECKOUT ====================`);
     console.log(`🛒 [DEBUG CHECKOUT] Botão checkout clicado!`);
-    console.log(`🛒 [DEBUG CHECKOUT] IsLeadIdReady:`, isLeadIdReady);
-    console.log(`🛒 [DEBUG CHECKOUT] CurrentLeadId:`, currentLeadId);
-    console.log(`🛒 [DEBUG CHECKOUT] CurrentLeadId type:`, typeof currentLeadId);
-    console.log(`🛒 [DEBUG CHECKOUT] CurrentLeadId is null:`, currentLeadId === null);
-    console.log(`🛒 [DEBUG CHECKOUT] CurrentLeadId is undefined:`, currentLeadId === undefined);
-    console.log(`🛒 [DEBUG CHECKOUT] CurrentLeadEmail:`, currentLeadEmail);
-    console.log(`🛒 [DEBUG CHECKOUT] SessionId:`, sessionId);
 
-    // Aguardar o leadId estar pronto se ainda não estiver
-    if (!isLeadIdReady) {
+    // Usar refs para ver estado atualizado sem depender de closures antigas
+    console.log(`🛒 [DEBUG CHECKOUT] IsLeadIdReady (Ref):`, isLeadIdReadyRef.current);
+    console.log(`🛒 [DEBUG CHECKOUT] CurrentLeadId (Ref):`, currentLeadIdRef.current);
+
+    // Aguardar o leadId estar pronto usando check periódico
+    if (!isLeadIdReadyRef.current) {
       console.log(`⏳ [DEBUG CHECKOUT] Aguardando leadId estar pronto...`);
       // Aguardar até 5 segundos para o leadId estar pronto
       let attempts = 0;
-      while (!isLeadIdReady && attempts < 50) {
+      while (!isLeadIdReadyRef.current && attempts < 50) {
         await new Promise(resolve => setTimeout(resolve, 100));
         attempts++;
       }
-      console.log(`🔄 [DEBUG CHECKOUT] Após aguardar - IsLeadIdReady:`, isLeadIdReady);
-      console.log(`🔄 [DEBUG CHECKOUT] Após aguardar - CurrentLeadId:`, currentLeadId);
+      console.log(`🔄 [DEBUG CHECKOUT] Após aguardar - IsLeadIdReady:`, isLeadIdReadyRef.current);
+      console.log(`🔄 [DEBUG CHECKOUT] Após aguardar - CurrentLeadId:`, currentLeadIdRef.current);
     }
 
-    const idToTrack = currentLeadId || sessionId;
-    console.log("🛒 [DEBUG CHECKOUT] Iniciando handleOfferClick");
-    console.log("🛒 [DEBUG CHECKOUT] currentLeadId:", currentLeadId);
-    console.log("🛒 [DEBUG CHECKOUT] sessionId:", sessionId);
+    const actualLeadId = currentLeadIdRef.current;
+
+    // Verificações finais
+    if (!actualLeadId) {
+      console.warn("⚠️ [DEBUG CHECKOUT] Timeout aguardando lead ID. Usando session ID como última tentativa:", sessionId);
+    }
+
+    const idToTrack = actualLeadId || sessionId;
     console.log("🛒 [DEBUG CHECKOUT] idToTrack:", idToTrack);
 
     try {
@@ -326,14 +346,14 @@ const App: React.FC = () => {
       console.log("✅ [DEBUG CHECKOUT] tracking.trackOfferClick concluído");
 
       // Atualizar o campo iniciar_checkout para true no lead
-      if (currentLeadId) {
-        console.log("🛒 [DEBUG CHECKOUT] Atualizando campo iniciar_checkout para currentLeadId:", currentLeadId);
+      if (actualLeadId) {
+        console.log("🛒 [DEBUG CHECKOUT] Atualizando campo iniciar_checkout para currentLeadId:", actualLeadId);
         try {
           const { data, error } = await supabase
             .schema('tbz')
             .from('leads')
             .update({ checkout_initiated: true }) // Ensure mapping is correct if column is named differently, checking schema first
-            .eq('id', currentLeadId)
+            .eq('id', actualLeadId)
             .select();
 
           if (error) {
@@ -346,7 +366,7 @@ const App: React.FC = () => {
           console.error("❌ [DEBUG CHECKOUT] Erro ao atualizar lead:", updateError);
         }
       } else {
-        console.warn("⚠️ [DEBUG CHECKOUT] currentLeadId é null - não é possível atualizar o lead");
+        console.warn("⚠️ [DEBUG CHECKOUT] actualLeadId é null - não é possível atualizar o lead");
         console.log("💡 [DEBUG CHECKOUT] Certifique-se de que o lead foi criado corretamente no lead_submit");
       }
     } catch (error) {
