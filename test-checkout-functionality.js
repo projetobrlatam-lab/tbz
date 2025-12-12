@@ -1,171 +1,143 @@
-import fetch from 'node-fetch';
 
-const SUPABASE_URL = 'https://ynxsksgttbzxooixgqzf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlueHNrc2d0dGJ6eG9vaXhncXpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4MTU4ODAsImV4cCI6MjA3NDM5MTg4MH0.PTAaE9WV6gjpDwlQuRY_HZjI-k5BCZ5yoyIjSSiSfIg';
+
+const SUPABASE_URL = 'https://awqqqkqvzlggczcoawvi.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3cXFxa3F2emxnZ2N6Y29hd3ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2ODE1MTEsImV4cCI6MjA4MDI1NzUxMX0.9e0KXWDZWc0UBr5clyf_bhl0rWEAMYDhXVn0ZwGFqWM';
 
 async function testCheckoutFunctionality() {
   console.log('🧪 Testando funcionalidade de checkout...\n');
 
   try {
-    // 1. Primeiro, vamos verificar se há leads na tabela
-    console.log('1️⃣ Verificando leads existentes...');
-    const leadsResponse = await fetch(`${SUPABASE_URL}/rest/v1/oreino360-leads?select=*`, {
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    // 1. Simular lead_submit via RPC para obter um lead_id válido
+    console.log('1️⃣ Simulando lead_submit via RPC...');
+    const uniqueEmail = `test.checkout.${Date.now()}@example.com`;
+    const rpcPayload = {
+      p_session_id: 'test-session-' + Date.now(),
+      p_event_type: 'lead_submit',
+      p_event_data: { name: 'Test User', email: uniqueEmail, phone: '11999999999' },
+      p_produto: 'tbz',
+      p_fonte_de_trafego: 'direct',
+      p_tipo_de_funil: 'quiz',
+      p_traffic_id: null,
+      p_fingerprint_hash: 'test_fp_' + Date.now(),
+      p_user_agent: 'node-test-script',
+      p_ip: null,
+      p_url: 'http://localhost/test',
+      p_referrer: null,
+      p_email: uniqueEmail,
+      p_name: 'Test User',
+      p_phone: '11999999999',
+      p_urgency_level: 'high'
+    };
 
-    if (!leadsResponse.ok) {
-      throw new Error(`Erro ao buscar leads: ${leadsResponse.status}`);
-    }
-
-    const leads = await leadsResponse.json();
-    console.log(`✅ Encontrados ${leads.length} leads na tabela`);
-    
-    if (leads.length === 0) {
-      console.log('❌ Nenhum lead encontrado. Criando um lead de teste...');
-      
-      // Criar um lead de teste
-      const createLeadResponse = await fetch(`${SUPABASE_URL}/rest/v1/oreino360-leads`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: 'Teste Checkout',
-          email: 'teste.checkout@example.com',
-          phone: '11999999999',
-          traffic_id: 'test-checkout-' + Date.now(),
-          fonte_de_trafego: 'teste',
-          tipo_de_funil: 'quiz',
-          iniciar_checkout: false
-        })
-      });
-
-      if (!createLeadResponse.ok) {
-        throw new Error(`Erro ao criar lead: ${createLeadResponse.status}`);
-      }
-
-      const newLead = await createLeadResponse.json();
-      console.log('✅ Lead de teste criado:', newLead[0].id);
-      
-      // Usar o lead recém-criado
-      leads.push(newLead[0]);
-    }
-
-    // 2. Pegar um lead que ainda não iniciou checkout
-    const leadToTest = leads.find(lead => !lead.iniciar_checkout) || leads[0];
-    console.log(`\n2️⃣ Testando com lead: ${leadToTest.id}`);
-    console.log(`   Nome: ${leadToTest.name}`);
-    console.log(`   Email: ${leadToTest.email}`);
-    console.log(`   Iniciar Checkout (antes): ${leadToTest.iniciar_checkout}`);
-
-    // 3. Simular o clique no botão de checkout (registrar evento)
-    console.log('\n3️⃣ Simulando clique no botão de checkout...');
-    
-    const trackResponse = await fetch(`${SUPABASE_URL}/functions/v1/track-main`, {
+    const rpcResponse = await fetch(`${SUPABASE_URL}/rest/v1/rpc/track_event_v2`, {
       method: 'POST',
       headers: {
-        'apikey': SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json'
+        'apikey': SUPABASE_ANON_KEY,
+        'Content-Profile': 'tbz',
+        'Prefer': 'return=representation'
       },
-      body: JSON.stringify({
-        event_type: 'checkout_click',
-        produto: 'reino-360',
-        tipo_de_funil: 'quiz',
-        fonte_de_trafego: 'teste',
-        traffic_id: leadToTest.traffic_id,
-        event_data: {
-          lead_id: leadToTest.id,
-          offer_url: 'https://pay.hotmart.com/test',
-          timestamp: new Date().toISOString()
-        }
-      })
+      body: JSON.stringify(rpcPayload)
     });
 
-    if (!trackResponse.ok) {
-      throw new Error(`Erro ao registrar evento: ${trackResponse.status}`);
+    if (!rpcResponse.ok) {
+      throw new Error(`Erro na RPC track_event_v2: ${rpcResponse.status} - ${await rpcResponse.text()}`);
     }
 
-    console.log('✅ Evento checkout_click registrado');
+    const rpcResult = await rpcResponse.json();
+    console.log('✅ RPC executada com sucesso:', rpcResult);
 
-    // 4. Atualizar o campo iniciar_checkout (simular o que o frontend faz)
-    console.log('\n4️⃣ Atualizando campo iniciar_checkout...');
-    
-    const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/oreino360-leads?id=eq.${leadToTest.id}`, {
+    const leadId = rpcResult.lead_id;
+    if (!leadId) {
+      throw new Error('❌ RPC não retornou lead_id!');
+    }
+    console.log(`✅ lead_id recebido: ${leadId}`);
+
+    // 2. Simular clique de oferta (checkout)
+    console.log('\n2️⃣ Simulando oferta click (checkout)...');
+    const offerPayload = {
+      p_session_id: rpcPayload.p_session_id,
+      p_event_type: 'offer_click',
+      p_event_data: { leadId: leadId },
+      p_produto: 'tbz',
+      p_fonte_de_trafego: 'direct',
+      p_tipo_de_funil: 'quiz',
+      p_traffic_id: null,
+      p_fingerprint_hash: rpcPayload.p_fingerprint_hash,
+      p_user_agent: 'node-test-script'
+    };
+
+    await fetch(`${SUPABASE_URL}/rest/v1/rpc/track_event_v2`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY,
+        'Content-Profile': 'tbz',
+      },
+      body: JSON.stringify(offerPayload)
+    });
+    console.log('✅ Evento offer_click enviado');
+
+
+    // 3. Atualizar o flag checkout_initiated (simulando App.tsx)
+    console.log('\n3️⃣ Atualizando campo checkout_initiated...');
+
+    const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
       method: 'PATCH',
       headers: {
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Content-Profile': 'tbz',
+        'Prefer': 'return=representation'
       },
       body: JSON.stringify({
-        iniciar_checkout: true
+        checkout_initiated: true
       })
     });
 
     if (!updateResponse.ok) {
-      throw new Error(`Erro ao atualizar lead: ${updateResponse.status}`);
+      // Tentar ler o erro
+      const text = await updateResponse.text();
+      throw new Error(`Erro ao atualizar lead: ${updateResponse.status} - ${text}`);
     }
 
-    console.log('✅ Campo iniciar_checkout atualizado para true');
+    console.log('✅ Campo checkout_initiated atualizado para true');
 
-    // 5. Verificar se a atualização foi bem-sucedida
-    console.log('\n5️⃣ Verificando atualização...');
-    
-    const verifyResponse = await fetch(`${SUPABASE_URL}/rest/v1/oreino360-leads?id=eq.${leadToTest.id}&select=*`, {
+
+    // 4. Verificar se a atualização persistiu
+    console.log('\n4️⃣ Verificando integridade dos dados...');
+
+    const verifyResponse = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}&select=*`, {
       headers: {
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Content-Profile': 'tbz',
+        'Accept-Profile': 'tbz'
       }
     });
 
     if (!verifyResponse.ok) {
-      throw new Error(`Erro ao verificar lead: ${verifyResponse.status}`);
+      const text = await verifyResponse.text();
+      throw new Error(`Erro ao buscar lead: ${verifyResponse.status} - ${text}`);
     }
 
-    const updatedLead = await verifyResponse.json();
-    console.log(`✅ Iniciar Checkout (depois): ${updatedLead[0].iniciar_checkout}`);
+    const verifyData = await verifyResponse.json();
+    const lead = verifyData[0];
 
-    // 6. Verificar se o evento foi registrado
-    console.log('\n6️⃣ Verificando eventos registrados...');
-    
-    const eventsResponse = await fetch(`${SUPABASE_URL}/rest/v1/oreino360-eventos?event_type=in.(checkout_click,checkout_start,offer_click)&order=created_at.desc&limit=5&select=*`, {
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    console.log('📋 Dados do lead:', lead);
 
-    if (!eventsResponse.ok) {
-      throw new Error(`Erro ao buscar eventos: ${eventsResponse.status}`);
+    if (lead.checkout_initiated === true) {
+      console.log('🎉 SUCESSO: checkout_initiated está TRUE');
+    } else {
+      console.error('❌ FALHA: checkout_initiated não é true');
     }
-
-    const events = await eventsResponse.json();
-    console.log(`✅ Encontrados ${events.length} eventos de checkout recentes`);
-    
-    if (events.length > 0) {
-      console.log('   Último evento:', {
-        tipo: events[0].event_type,
-        data: events[0].created_at,
-        produto: events[0].produto
-      });
-    }
-
-    console.log('\n🎉 TESTE CONCLUÍDO COM SUCESSO!');
-    console.log('✅ Evento de checkout registrado');
-    console.log('✅ Campo iniciar_checkout atualizado');
-    console.log('✅ Funcionalidade está funcionando corretamente');
 
   } catch (error) {
-    console.error('❌ Erro durante o teste:', error.message);
+    console.error('❌ Erro durante o teste:', error);
   }
 }
 

@@ -1,0 +1,1 @@
+ALTER TABLE tbz.leads ADD COLUMN IF NOT EXISTS checkout_initiated BOOLEAN DEFAULT FALSE;

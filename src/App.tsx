@@ -330,8 +330,9 @@ const App: React.FC = () => {
         console.log("🛒 [DEBUG CHECKOUT] Atualizando campo iniciar_checkout para currentLeadId:", currentLeadId);
         try {
           const { data, error } = await supabase
-            .from('oreino360-leads')
-            .update({ iniciar_checkout: true })
+            .schema('tbz')
+            .from('leads')
+            .update({ checkout_initiated: true }) // Ensure mapping is correct if column is named differently, checking schema first
             .eq('id', currentLeadId)
             .select();
 
