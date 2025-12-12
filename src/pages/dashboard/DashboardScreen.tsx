@@ -254,14 +254,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
     };
   }, [isAuthenticated, fetchInitialData]);
 
-  const handleClearMetrics = async () => {
-    if (confirm('Tem certeza que deseja limpar todas as métricas? Esta ação não pode ser desfeita.')) {
+  const handleCleanByIp = async () => {
+    const ip = prompt('Digite o IP que deseja limpar (ex: 123.45.67.89):');
+    if (!ip) return;
+
+    if (confirm(`Tem certeza que deseja apagar TODOS os dados (sessões, leads, eventos) do IP ${ip}? Esta ação é irreversível.`)) {
       try {
-        await api.clearAllMetrics();
-        alert('Métricas limpas com sucesso!');
+        await api.cleanDataByIp(ip);
+        alert(`Dados do IP ${ip} limpos com sucesso!`);
         fetchInitialData();
       } catch (err: any) {
-        alert(`Erro ao limpar métricas: ${err.message}`);
+        alert(`Erro ao limpar dados: ${err.message}`);
       }
     }
   };
@@ -369,7 +372,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                   <input type="date" value={customDate} onChange={(e) => setCustomDate(e.target.value)} className="bg-white border-l border-gray-300 ml-2 pl-2 focus:outline-none" />
                 )}
               </div>
-              <button onClick={handleClearMetrics} className="text-sm bg-red-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-red-700 transition-colors">Limpar Métricas</button>
+              <button onClick={handleCleanByIp} className="text-sm bg-red-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-red-700 transition-colors">Limpar por IP</button>
               <button onClick={handleLogout} className="text-sm bg-gray-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors">Sair</button>
             </div>
           </div>

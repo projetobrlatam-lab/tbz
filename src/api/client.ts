@@ -765,3 +765,14 @@ export const deleteProduct = async (id: string): Promise<void> => {
     throw error;
   }
 };
+
+export const cleanDataByIp = async (ip: string) => {
+  const { error } = await supabase.rpc('clean_data_by_ip', {
+    p_ip_address: ip
+  });
+
+  if (error) {
+    console.error('Erro ao limpar dados por IP:', error);
+    throw error;
+  }
+};
