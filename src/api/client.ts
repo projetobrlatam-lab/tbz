@@ -767,12 +767,22 @@ export const deleteProduct = async (id: string): Promise<void> => {
 };
 
 export const cleanDataByIp = async (ip: string) => {
-  const { error } = await supabase.rpc('clean_data_by_ip', {
-    p_ip_address: ip
+  const authToken = await getAuthToken();
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/clean_data_by_ip`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+      'apikey': SUPABASE_ANON_KEY,
+      'Content-Profile': 'tbz'
+    },
+    body: JSON.stringify({ p_ip_address: ip })
   });
 
-  if (error) {
-    console.error('Erro ao limpar dados por IP:', error);
-    throw error;
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Erro ao limpar dados por IP:', errorText);
+    throw new Error(`Erro HTTP: ${response.status} - ${errorText}`);
   }
 };
