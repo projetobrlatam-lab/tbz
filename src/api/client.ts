@@ -1,6 +1,6 @@
 import { EventType, DashboardMetrics, Visit, Sale, LeadTagAssignment, LeadWithTags, AbandonmentData, Product } from '../types';
 import { supabase } from '../integrations/supabase/client';
-import { collectBrowserIdentity, computeFingerprint } from '../utils/browserIdentity';
+import { collectBrowserIdentity, computeFingerprint, BrowserIdentity } from '../utils/browserIdentity';
 import { generateSessionId } from '../utils/validation';
 
 const SUPABASE_URL = 'https://awqqqkqvzlggczcoawvi.supabase.co';
@@ -45,46 +45,11 @@ const getAuthToken = async (): Promise<string> => {
   return session.access_token;
 };
 
-// Cache de localização
-let locationCache: { country: string; region: string; city: string } | null = null;
-
-const getLocation = async (): Promise<{ country: string; region: string; city: string } | null> => {
-  if (locationCache) return locationCache;
-
-  // Tentar recuperar do sessionStorage
-  const stored = safeSessionStorage.get('user_location');
-  if (stored) {
-    try {
-      locationCache = JSON.parse(stored);
-      return locationCache;
-    } catch (e) {
-      console.warn('Erro ao parsear localização do storage', e);
-    }
-  }
-
-  try {
-    // Adicionando timeout de 2 segundos para não bloquear o tracking
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-    const response = await fetch('https://ipapi.co/json/', { signal: controller.signal });
-    clearTimeout(timeoutId);
-    if (!response.ok) throw new Error('Falha ao obter localização');
-    const data = await response.json();
-
-    locationCache = {
-      country: data.country_code,
-      region: data.region,
-      city: data.city
-    };
-
-    safeSessionStorage.set('user_location', JSON.stringify(locationCache));
-    return locationCache;
-  } catch (error) {
-    console.warn('Erro ao obter localização:', error);
-    return null;
-  }
-};
+// Cache de identidade e fingerprint para a sessão
+let identityCache: {
+  identity: BrowserIdentity;
+  fingerprint: string;
+} | null = null;
 
 const getSessionId = (): string => {
   if (!isBrowser) {
@@ -105,36 +70,31 @@ const getSessionId = (): string => {
   return sessionId;
 };
 
-// Helper para lidar com SessionStorage de forma segura
-const getCachedIdentityAndFingerprint = async () => {
-  // Tenta recuperar do sessionStorage primeiro
+const getIdentityAndFingerprint = async () => {
+  if (identityCache) return identityCache;
+
+  // Tentar recuperar do sessionStorage
   const cachedFingerprint = safeSessionStorage.get('quiz_fingerprint');
   const cachedIdentityRaw = safeSessionStorage.get('browser_identity');
+
   if (cachedFingerprint && cachedIdentityRaw) {
     try {
       const parsedIdentity = JSON.parse(cachedIdentityRaw);
-      return { identity: parsedIdentity as any, fingerprint: cachedFingerprint };
-    } catch {
-      // Se falhar em parsear, continua para coletar novamente
-    }
+      identityCache = { identity: parsedIdentity, fingerprint: cachedFingerprint };
+      return identityCache;
+    } catch { }
   }
 
-  // Se não existir cache, coleta apenas dados do browser (sem IP externo)
+  // Coleta nova (inclui hardware signals + network location com retry/failover)
   const identity = await collectBrowserIdentity();
+  const fingerprint = await computeFingerprint(identity);
 
-  // IMPORTANTE: Não gerar fingerprint no frontend, deixar o backend fazer isso
-  // usando o IP correto dos headers da requisição
-  const fingerprint = await computeFingerprint([
-    '', // IP será determinado pelo backend
-    identity?.userAgent || '',
-    identity?.acceptLanguage || ''
-  ]);
-
-  // Salva em cache para futuras chamadas dentro da mesma sessão
+  // Cache
   safeSessionStorage.set('browser_identity', JSON.stringify(identity));
   safeSessionStorage.set('quiz_fingerprint', fingerprint);
 
-  return { identity, fingerprint };
+  identityCache = { identity, fingerprint };
+  return identityCache;
 };
 
 export const trackEvent = async (eventType: EventType, payload?: any): Promise<any> => {
@@ -148,20 +108,16 @@ export const trackEvent = async (eventType: EventType, payload?: any): Promise<a
     const product = payload?.produto ?? 'tbz';
     const funnelType = payload?.tipo_de_funil || 'quiz';
 
-    // REGRA SIMPLES: Apenas UTMs da URL atual, sem fallbacks ou sessionStorage
     const urlParams = new URLSearchParams(window.location.search);
     const utm_source = urlParams.get('utm_source') || null;
     const utm_medium = urlParams.get('utm_medium') || null;
 
     console.log(`[client.ts] 🎯 UTMs da URL: utm_source=${utm_source}, utm_medium=${utm_medium}`);
 
-    // Utiliza cache de identidade + fingerprint
-    const { identity, fingerprint } = await getCachedIdentityAndFingerprint();
+    // Obter identidade robusta (inclui localização)
+    const { identity, fingerprint } = await getIdentityAndFingerprint();
+    const location = identity.geo; // Location agora vem do identity
 
-    // Obter localização (assíncrono, mas rápido se cacheado)
-    const location = await getLocation();
-
-    // Preparar event_data como JSON
     const eventDataObj = {
       ...payload,
       name: payload?.name || null,
@@ -177,7 +133,6 @@ export const trackEvent = async (eventType: EventType, payload?: any): Promise<a
       utm_medium: utm_medium,
     };
 
-    // Preparar payload para a RPC function (track_event_v2)
     const rpcPayload = {
       p_session_id: sessionId,
       p_event_type: eventType,
@@ -188,7 +143,7 @@ export const trackEvent = async (eventType: EventType, payload?: any): Promise<a
       p_traffic_id: utm_medium || null,
       p_fingerprint_hash: fingerprint || null,
       p_user_agent: identity?.userAgent || (typeof navigator !== 'undefined' ? navigator.userAgent : null),
-      p_ip: null, // IP será extraído headers se possível, ou ficará null (RPC lida com isso se passado null? Não, RPC precisa do IP. Mas client não tem IP. O Supabase injeta? Não via RPC direto. Precisamos confiar no header x-forwarded-for que o Supabase recebe. Mas no body não vai. O RPC pode pegar `current_setting('request.headers')::json->>'x-forwarded-for'`? Sim, mas é complexo. Vamos mandar null e aceitar que o IP pode não ser gravado corretamente na tabela identificador via RPC direto do client, A MENOS que usemos uma Edge Function. Mas a Edge Function falhou. O RPC é a alternativa. O IP é crítico para fingerprint? O fingerprint já vem calculado do front (com IP anonimizado se possível, ou sem IP). O `identificador` tabela pede `original_ip`. Se mandarmos null, ok. O fingerprint é o que importa para dedup.)
+      p_ip: identity.ipv4 || null, // IP agora vem do provider de identity
       p_url: isBrowser ? window.location.href : null,
       p_referrer: isBrowser ? document.referrer || null : null,
       p_email: payload?.email || null,
@@ -652,9 +607,8 @@ export const recordAbandonment = async (
     }
 
     // Tentar pegar fingerprint do cache se existir
-    const cachedFingerprint = safeSessionStorage.get('quiz_fingerprint');
-    const { identity } = await getCachedIdentityAndFingerprint();
-    const location = await getLocation();
+    const { identity, fingerprint } = await getIdentityAndFingerprint();
+    const location = identity.geo;
 
     // Preparar payload para a RPC function (track_abandonment_v2)
     const rpcPayload = {
@@ -666,9 +620,9 @@ export const recordAbandonment = async (
       p_tipo_de_funil: tipoDeFunil,
       p_email: leadEmail || null,
       p_traffic_id: instagramId || null,
-      p_fingerprint_hash: cachedFingerprint || null,
+      p_fingerprint_hash: fingerprint || null,
       p_user_agent: identity?.userAgent || (typeof navigator !== 'undefined' ? navigator.userAgent : null),
-      p_ip: null, // IP será extraído headers se possível, ou ficará null
+      p_ip: identity.ipv4 || null,
       p_country_code: location?.country || null,
       p_region_name: location?.region || null,
       p_city: location?.city || null
