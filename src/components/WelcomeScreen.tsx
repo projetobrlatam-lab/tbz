@@ -48,17 +48,17 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
               SUAS BRIGAS ESTÃO CONDENANDO SEUS FILHOS
             </span>
           </h1>
-          
+
           <h2 className="text-xl sm:text-2xl font-semibold text-text-secondary mb-8 max-w-3xl mx-auto">
             Faça Este Diagnóstico Antes Que o Dano Se Torne Irreversível
           </h2>
-          
+
           <p className="text-base sm:text-lg text-text-secondary mb-10 max-w-3xl mx-auto leading-relaxed">
-            A cada briga que seus filhos presenciam, você os ensina que casamento é sofrimento. 
-            Neurociência confirma: isso causa danos permanentes após os 12 anos. Este diagnóstico 
+            A cada briga que seus filhos presenciam, você os ensina que casamento é sofrimento.
+            Neurociência confirma: isso causa danos permanentes após os 12 anos. Este diagnóstico
             revelará o nível de risco e gerará seu plano de resgate:
           </p>
-          
+
           {/* Lista de benefícios */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto mb-10">
             {fascinações.map((item, index) => (
@@ -70,16 +70,16 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
               </div>
             ))}
           </div>
-          
+
           {/* Botão principal */}
-          <button 
-            onClick={onStart} 
+          <button
+            onClick={onStart}
             className="view_oferta group w-full max-w-lg mx-auto bg-gradient-to-r from-primary to-primary-dark text-white font-bold text-xl sm:text-2xl py-6 px-8 rounded-2xl shadow-elegant-lg hover:shadow-elegant-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-primary-dark to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <span className="relative z-10 flex items-center justify-center space-x-3">
               <SparkleIcon className="w-6 h-6" />
-              <span>QUERO SALVAR MEUS FILHOS AGORA</span>
+              <span>FAZER O DIAGNÓSTICO AGORA</span>
               <SparkleIcon className="w-6 h-6" />
             </span>
           </button>
