@@ -133,6 +133,20 @@ export const trackEvent = async (eventType: EventType, payload?: any): Promise<a
       utm_medium: utm_medium,
     };
 
+    // Traduzir nível de urgência para português
+    const translateUrgency = (level: string | null): string | null => {
+      if (!level) return null;
+      const map: Record<string, string> = {
+        'emergency': 'Emergencial',
+        'critical': 'Crítica',
+        'high': 'Alta'
+      };
+      return map[level.toLowerCase()] || level;
+    };
+
+    const urgencyLevel = payload?.diagnosticResult?.urgencyLevel || payload?.diagnosisLevel || null;
+    const translatedUrgency = translateUrgency(urgencyLevel);
+
     const rpcPayload = {
       p_session_id: sessionId,
       p_event_type: eventType,
@@ -149,7 +163,7 @@ export const trackEvent = async (eventType: EventType, payload?: any): Promise<a
       p_email: payload?.email || null,
       p_name: payload?.name || null,
       p_phone: payload?.phone || null,
-      p_urgency_level: payload?.diagnosticResult?.urgencyLevel || payload?.diagnosisLevel || null,
+      p_urgency_level: translatedUrgency,
       p_country_code: location?.country || null,
       p_region_name: location?.region || null,
       p_city: location?.city || null
