@@ -62,14 +62,19 @@ const getBarColor = (tagName: string) => {
 const getUrgencyColor = (urgencyLevel: string | null) => {
   switch (urgencyLevel) {
     case 'EMERGENCIAL':
+    case 'Emergencial':
     case 'emergency': return 'bg-primary text-white';
     case 'CRÍTICA':
+    case 'Crítica':
     case 'critical': return 'bg-primary-dark text-white';
     case 'ALTA':
+    case 'Alta':
     case 'high': return 'bg-warning-dark text-white';
     case 'MÉDIA':
+    case 'Média':
     case 'medium': return 'bg-warning text-white';
     case 'BAIXA':
+    case 'Baixa':
     case 'low': return 'bg-accent text-white';
     default: return 'bg-gray-100 text-gray-800';
   }
@@ -78,14 +83,19 @@ const getUrgencyColor = (urgencyLevel: string | null) => {
 const getUrgencyText = (urgencyLevel: string | null) => {
   switch (urgencyLevel) {
     case 'EMERGENCIAL':
+    case 'Emergencial':
     case 'emergency': return 'Emergencial';
     case 'CRÍTICA':
+    case 'Crítica':
     case 'critical': return 'Crítica';
     case 'ALTA':
+    case 'Alta':
     case 'high': return 'Alta';
     case 'MÉDIA':
+    case 'Média':
     case 'medium': return 'Média';
     case 'BAIXA':
+    case 'Baixa':
     case 'low': return 'Baixa';
     default: return 'Não definido';
   }

@@ -512,7 +512,7 @@ export const getLeadsWithTags = async (
     traffic_id: l.traffic_id,
     fonte_de_trafego: l.fonte_de_trafego,
     tipo_de_funil: l.tipo_de_funil,
-    checkout_initiated: l.checkout_initiated,
+    iniciar_checkout: l.checkout_initiated,
     tags: l.tags || []
   }));
 };
