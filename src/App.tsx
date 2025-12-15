@@ -140,11 +140,20 @@ const App: React.FC = () => {
       fireAbandonment();
     };
 
-    // Somente beforeunload — não usa pagehide/visibilitychange para evitar falsos positivos
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        console.log('🔥 [DEBUG] visibilitychange (hidden) disparado, view:', view, 'questionIndex:', currentQuestionIndex);
+        fireAbandonment();
+      }
+    };
+
+    // Somente beforeunload — agora também usa visibilitychange para mobile/tab switching
     window.addEventListener('beforeunload', onBeforeUnload);
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
       window.removeEventListener('beforeunload', onBeforeUnload);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, [view, currentQuestionIndex, tracking, currentLeadEmail, getCurrentStep]);
 
