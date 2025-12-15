@@ -1,5 +1,6 @@
--- Migration: Adjust Timezone to America/Sao_Paulo (GMT-3)
+-- Migration: Adjust Timezone to America/Sao_Paulo (GMT-3) - CORRECTED
 -- Description: Updates reporting functions to respect proper timezone boundaries for 'today', 'yesterday' and custom dates.
+-- Fix: Explicitly casting to ::timestamp before AT TIME ZONE to ensure 00:00:00 local time is respected.
 
 -- 1. tbz.get_dashboard_metrics
 CREATE OR REPLACE FUNCTION tbz.get_dashboard_metrics(p_date_filter text, p_custom_date text DEFAULT NULL::text, p_produto text DEFAULT 'all'::text, p_fonte_de_trafego text DEFAULT 'all'::text, p_tipo_de_funil text DEFAULT 'all'::text)
@@ -28,11 +29,12 @@ DECLARE
 BEGIN
     -- 1. Determine Date Range (Timezone Adjusted)
     IF p_date_filter = 'today' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo');
+        -- Fix: ::date::timestamp ensures we are talking about 00:00:00 WALL CLOCK time, then convert to UTC
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
         v_end_date := now();
     ELSIF p_date_filter = 'yesterday' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date AT TIME ZONE 'America/Sao_Paulo');
-        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
+        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
     ELSIF p_date_filter = 'custom' AND p_custom_date IS NOT NULL AND p_custom_date != '' THEN
         v_start_date := (p_custom_date || ' 00:00:00')::timestamp AT TIME ZONE 'America/Sao_Paulo';
         v_end_date := (p_custom_date || ' 23:59:59')::timestamp AT TIME ZONE 'America/Sao_Paulo';
@@ -183,11 +185,12 @@ DECLARE
 BEGIN
     -- Determine Date Range (Timezone Adjusted)
     IF p_date_filter = 'today' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo');
+         -- Fix: ::date::timestamp ensures we are talking about 00:00:00 WALL CLOCK time, then convert to UTC
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
         v_end_date := now();
     ELSIF p_date_filter = 'yesterday' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date AT TIME ZONE 'America/Sao_Paulo');
-        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
+        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
     ELSIF p_date_filter = 'custom' AND p_custom_date IS NOT NULL AND p_custom_date != '' THEN
         v_start_date := (p_custom_date || ' 00:00:00')::timestamp AT TIME ZONE 'America/Sao_Paulo';
         v_end_date := (p_custom_date || ' 23:59:59')::timestamp AT TIME ZONE 'America/Sao_Paulo';
@@ -270,11 +273,12 @@ DECLARE
 BEGIN
     -- Determine Date Range (Timezone Adjusted)
     IF p_date_filter = 'today' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo');
+         -- Fix: ::date::timestamp ensures we are talking about 00:00:00 WALL CLOCK time, then convert to UTC
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
         v_end_date := now();
     ELSIF p_date_filter = 'yesterday' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date AT TIME ZONE 'America/Sao_Paulo');
-        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
+        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
     ELSIF p_date_filter = 'custom' AND p_custom_date IS NOT NULL AND p_custom_date != '' THEN
         v_start_date := (p_custom_date || ' 00:00:00')::timestamp AT TIME ZONE 'America/Sao_Paulo';
         v_end_date := (p_custom_date || ' 23:59:59')::timestamp AT TIME ZONE 'America/Sao_Paulo';
@@ -317,11 +321,12 @@ DECLARE
 BEGIN
     -- Determine Date Range (Timezone Adjusted)
     IF p_date_filter = 'today' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo');
+         -- Fix: ::date::timestamp ensures we are talking about 00:00:00 WALL CLOCK time, then convert to UTC
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
         v_end_date := now();
     ELSIF p_date_filter = 'yesterday' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date AT TIME ZONE 'America/Sao_Paulo');
-        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
+        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
     ELSIF p_date_filter = 'custom' AND p_custom_date IS NOT NULL AND p_custom_date != '' THEN
         v_start_date := (p_custom_date || ' 00:00:00')::timestamp AT TIME ZONE 'America/Sao_Paulo';
         v_end_date := (p_custom_date || ' 23:59:59')::timestamp AT TIME ZONE 'America/Sao_Paulo';
@@ -365,11 +370,12 @@ DECLARE
 BEGIN
     -- Determine Date Range (Timezone Adjusted)
     IF p_date_filter = 'today' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo');
+         -- Fix: ::date::timestamp ensures we are talking about 00:00:00 WALL CLOCK time, then convert to UTC
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
         v_end_date := now();
     ELSIF p_date_filter = 'yesterday' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date AT TIME ZONE 'America/Sao_Paulo');
-        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
+        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
     ELSIF p_date_filter = 'custom' AND p_custom_date IS NOT NULL AND p_custom_date != '' THEN
         v_start_date := (p_custom_date || ' 00:00:00')::timestamp AT TIME ZONE 'America/Sao_Paulo';
         v_end_date := (p_custom_date || ' 23:59:59')::timestamp AT TIME ZONE 'America/Sao_Paulo';
@@ -408,11 +414,12 @@ DECLARE
 BEGIN
     -- Determine Date Range (Timezone Adjusted)
     IF p_date_filter = 'today' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo');
+         -- Fix: ::date::timestamp ensures we are talking about 00:00:00 WALL CLOCK time, then convert to UTC
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
         v_end_date := now();
     ELSIF p_date_filter = 'yesterday' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date AT TIME ZONE 'America/Sao_Paulo');
-        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
+        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
     ELSIF p_date_filter = 'custom' AND p_custom_date IS NOT NULL AND p_custom_date != '' THEN
         v_start_date := (p_custom_date || ' 00:00:00')::timestamp AT TIME ZONE 'America/Sao_Paulo';
         v_end_date := (p_custom_date || ' 23:59:59')::timestamp AT TIME ZONE 'America/Sao_Paulo';
@@ -453,11 +460,12 @@ DECLARE
 BEGIN
     -- Determine Date Range (Timezone Adjusted)
     IF p_date_filter = 'today' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo');
+         -- Fix: ::date::timestamp ensures we are talking about 00:00:00 WALL CLOCK time, then convert to UTC
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
         v_end_date := now();
     ELSIF p_date_filter = 'yesterday' THEN
-        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date AT TIME ZONE 'America/Sao_Paulo');
-        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
+        v_start_date := ((now() AT TIME ZONE 'America/Sao_Paulo' - interval '1 day')::date::timestamp AT TIME ZONE 'America/Sao_Paulo');
+        v_end_date := ((now() AT TIME ZONE 'America/Sao_Paulo')::date::timestamp AT TIME ZONE 'America/Sao_Paulo') - interval '1 second';
     ELSIF p_date_filter = 'custom' AND p_custom_date IS NOT NULL AND p_custom_date != '' THEN
         v_start_date := (p_custom_date || ' 00:00:00')::timestamp AT TIME ZONE 'America/Sao_Paulo';
         v_end_date := (p_custom_date || ' 23:59:59')::timestamp AT TIME ZONE 'America/Sao_Paulo';
