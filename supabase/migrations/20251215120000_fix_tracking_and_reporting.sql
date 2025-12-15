@@ -418,13 +418,13 @@ BEGIN
 
     RETURN QUERY
     WITH LatestSession AS (
-        SELECT DISTINCT ON (fingerprint_hash) 
-            fingerprint_hash, 
-            traffic_id, 
-            fonte_de_trafego, 
-            tipo_de_funil
-        FROM tbz.sessoes
-        ORDER BY fingerprint_hash, created_at DESC
+        SELECT DISTINCT ON (s.fingerprint_hash) 
+            s.fingerprint_hash, 
+            s.traffic_id, 
+            s.fonte_de_trafego, 
+            s.tipo_de_funil
+        FROM tbz.sessoes s
+        ORDER BY s.fingerprint_hash, s.created_at DESC
     ),
     LeadProduct AS (
         SELECT DISTINCT ON (lp.lead_id)
