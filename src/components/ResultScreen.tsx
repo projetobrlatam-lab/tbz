@@ -106,7 +106,7 @@ interface ResultScreenProps {
 }
 
 const ResultScreen: React.FC<ResultScreenProps> = ({ diagnosisLevel, diagnosticResult, onOfferClick }) => {
-  const [hotmartUrl, setHotmartUrl] = useState('https://payment.ticto.app/O1A7E5B31');
+  const [hotmartUrl, setHotmartUrl] = useState('https://pay.kiwify.com.br/ASnakNd');
   const selectedDiagnosis = diagnoses[diagnosisLevel] || diagnoses[0];
 
   // Função para mapear o nível de urgência para o texto de diagnóstico
@@ -159,7 +159,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ diagnosisLevel, diagnosticR
     const phonenumber = params.get('phonenumber');
 
     if (name && email && phonenumber) {
-      const baseUrl = 'https://payment.ticto.app/O1A7E5B31';
+      const baseUrl = 'https://pay.kiwify.com.br/ASnakNd';
       const populatedUrl = `${baseUrl}?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&phonenumber=${encodeURIComponent(phonenumber)}`;
       setHotmartUrl(populatedUrl);
     }

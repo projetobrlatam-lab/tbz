@@ -397,7 +397,7 @@ const App: React.FC = () => {
       }
     });
 
-    const baseUrl = 'https://payment.ticto.app/O1A7E5B31';
+    const baseUrl = 'https://pay.kiwify.com.br/ASnakNd';
     const queryString = hotmartParams.toString();
     const hotmartUrl = queryString ? `${baseUrl}?${queryString}` : baseUrl;
 
