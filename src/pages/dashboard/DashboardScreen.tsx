@@ -140,7 +140,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'abandonment' | 'visits' | 'buyers' | 'crm' | 'products'>('overview');
-  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'yesterday' | 'custom'>('all');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'yesterday' | 'custom'>('today');
   const [customDate, setCustomDate] = useState<string>('');
   const [selectedProduct, setSelectedProduct] = useState<string>('all');
   const [selectedFonteDeTrafego, setSelectedFonteDeTrafego] = useState<string>('all');
@@ -305,11 +305,11 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
-              <img src={Reino360Logo} alt="Promotor21" className="h-20 w-auto" />
+          <div className="flex flex-col lg:flex-row justify-between items-center py-6 gap-4">
+            <div className="flex items-center space-x-4 w-full lg:w-auto justify-center lg:justify-start">
+              <img src={Reino360Logo} alt="Promotor21" className="h-16 lg:h-20 w-auto" />
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-wrap items-center justify-center gap-3 w-full lg:w-auto">
               {/* Filtro de Produto */}
               <div className="flex items-center space-x-2">
                 <FilterIcon className="w-5 h-5 text-gray-400" />
@@ -372,8 +372,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                   <input type="date" value={customDate} onChange={(e) => setCustomDate(e.target.value)} className="bg-white border-l border-gray-300 ml-2 pl-2 focus:outline-none" />
                 )}
               </div>
-              <button onClick={handleCleanByIp} className="text-sm bg-red-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-red-700 transition-colors">Limpar por IP</button>
-              <button onClick={handleLogout} className="text-sm bg-gray-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors">Sair</button>
+              <button onClick={handleCleanByIp} className="text-sm bg-red-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-red-700 transition-colors w-full sm:w-auto">Limpar por IP</button>
+              <button onClick={handleLogout} className="text-sm bg-gray-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors w-full sm:w-auto">Sair</button>
             </div>
           </div>
           <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg overflow-x-auto">
